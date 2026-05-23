@@ -1,13 +1,16 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
+
 <meta charset="UTF-8" />
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
 <title>ORION AI</title>
 
 <!-- FAVICON -->
-<link rel="icon" type="image/png" href="favicon.png">
+<link rel="icon" type="image/png" sizes="64x64" href="favicon.png">
 
 <style>
 
@@ -18,20 +21,30 @@
 }
 
 body{
+
   overflow:hidden;
+
   background:#020812;
+
   font-family:Arial, sans-serif;
+
   height:100vh;
+
   display:flex;
+
   justify-content:center;
+
   align-items:center;
+
   color:white;
 }
 
 /* GRID */
 
 #background-grid{
+
   position:fixed;
+
   inset:0;
 
   background-image:
@@ -43,15 +56,15 @@ body{
   z-index:0;
 }
 
-
 /* ORION */
 
 #orion-container{
+
   position:relative;
 
   z-index:2;
 
-  display:none;
+  display:flex;
 
   flex-direction:column;
 
@@ -61,6 +74,7 @@ body{
 }
 
 .title{
+
   font-size:58px;
 
   letter-spacing:12px;
@@ -73,6 +87,7 @@ body{
 }
 
 .status{
+
   color:#7db7d1;
 
   font-size:18px;
@@ -87,18 +102,24 @@ body{
 /* ORB */
 
 .orb-wrapper{
+
   position:relative;
 
   width:220px;
+
   height:220px;
 
   display:flex;
+
   justify-content:center;
+
   align-items:center;
 }
 
 .orb{
+
   width:160px;
+
   height:160px;
 
   border-radius:50%;
@@ -122,9 +143,11 @@ body{
 }
 
 .orb-ring{
+
   position:absolute;
 
   width:210px;
+
   height:210px;
 
   border-radius:50%;
@@ -135,7 +158,9 @@ body{
 }
 
 .orb-ring.delay{
+
   width:250px;
+
   height:250px;
 
   animation-direction:reverse;
@@ -146,6 +171,7 @@ body{
 /* STATES */
 
 .listening{
+
   transform:scale(1.15);
 
   box-shadow:
@@ -154,16 +180,19 @@ body{
 }
 
 .thinking{
+
   animation:thinking 1s infinite;
 }
 
 .speaking{
+
   animation:speakPulse 0.4s infinite;
 }
 
 /* BUTTON */
 
 #voice-btn{
+
   padding:16px 28px;
 
   border:none;
@@ -186,6 +215,7 @@ body{
 }
 
 #voice-btn:hover{
+
   transform:scale(1.05);
 
   box-shadow:
@@ -195,51 +225,64 @@ body{
 /* ANIMATIONS */
 
 @keyframes pulse{
-  0%{ transform:scale(1); }
-  50%{ transform:scale(1.05); }
-  100%{ transform:scale(1); }
+
+  0%{
+    transform:scale(1);
+  }
+
+  50%{
+    transform:scale(1.05);
+  }
+
+  100%{
+    transform:scale(1);
+  }
 }
 
 @keyframes rotate{
-  from{ transform:rotate(0deg); }
-  to{ transform:rotate(360deg); }
+
+  from{
+    transform:rotate(0deg);
+  }
+
+  to{
+    transform:rotate(360deg);
+  }
 }
 
 @keyframes thinking{
-  0%{ filter:hue-rotate(0deg); }
-  100%{ filter:hue-rotate(360deg); }
+
+  0%{
+    filter:hue-rotate(0deg);
+  }
+
+  100%{
+    filter:hue-rotate(360deg);
+  }
 }
 
 @keyframes speakPulse{
-  0%{ transform:scale(1); }
-  50%{ transform:scale(1.2); }
-  100%{ transform:scale(1); }
+
+  0%{
+    transform:scale(1);
+  }
+
+  50%{
+    transform:scale(1.2);
+  }
+
+  100%{
+    transform:scale(1);
+  }
 }
 
 </style>
+
 </head>
 
 <body>
 
 <div id="background-grid"></div>
-
-<!-- LOGIN -->
-
-<div id="login">
-
-  <h2>ORION ACCESS</h2>
-
-  <input id="user" placeholder="Usuário">
-
-  <input id="pass" type="password" placeholder="Senha">
-
-  <button onclick="login()">
-    ENTRAR
-  </button>
-
-</div>
-
-<!-- ORION -->
 
 <div id="orion-container">
 
@@ -266,7 +309,6 @@ body{
 </div>
 
 <script>
-  
 
 /* ELEMENTS */
 
@@ -452,4 +494,5 @@ function falar(text){
 </script>
 
 </body>
+
 </html>
