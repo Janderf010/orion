@@ -45,75 +45,33 @@ body{
 
 /* LOGIN */
 
-#login{
-  position:absolute;
-  z-index:10;
+function login(){
 
-  width:320px;
+  const u =
+  document.getElementById("user").value;
 
-  background:rgba(0,15,30,0.85);
+  const p =
+  document.getElementById("pass").value;
 
-  border:1px solid rgba(0,212,255,0.2);
+  // NOVO LOGIN
 
-  padding:30px;
+  if(
+    u === "admin" &&
+    p === "orion2026"
+  ){
 
-  border-radius:20px;
+    document.getElementById("login").style.display = "none";
 
-  backdrop-filter:blur(10px);
+    document.getElementById("orion-container").style.display = "flex";
 
-  display:flex;
-  flex-direction:column;
-  gap:15px;
+  }
 
-  box-shadow:
-  0 0 30px rgba(0,212,255,0.15);
-}
+  else{
 
-#login h2{
-  text-align:center;
-  color:#00d4ff;
-  letter-spacing:4px;
-}
+    alert("Acesso negado");
 
-#login input{
-  padding:14px;
+  }
 
-  border:none;
-
-  border-radius:12px;
-
-  background:#06111d;
-
-  color:white;
-
-  outline:none;
-
-  border:1px solid rgba(0,212,255,0.1);
-}
-
-#login button{
-  padding:14px;
-
-  border:none;
-
-  border-radius:999px;
-
-  background:#00d4ff;
-
-  color:#001018;
-
-  font-weight:bold;
-
-  cursor:pointer;
-
-  transition:0.3s;
-}
-
-#login button:hover{
-  transform:scale(1.03);
-
-  box-shadow:
-  0 0 20px #00d4ff;
 }
 
 /* ORION */
