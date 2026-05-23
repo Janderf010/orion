@@ -321,7 +321,7 @@ document.getElementById("status");
 const voiceBtn =
 document.getElementById("voice-btn");
 
-/* SPEECH */
+/* SPEECH RECOGNITION */
 
 const SpeechRecognition =
 window.SpeechRecognition ||
@@ -386,7 +386,7 @@ recognition.onerror = () => {
 
 };
 
-/* AI */
+/* OPENAI */
 
 async function responder(text){
 
@@ -401,13 +401,16 @@ async function responder(text){
     await fetch(
     "https://api.openai.com/v1/chat/completions",
     {
+
       method:"POST",
 
       headers:{
+
         "Content-Type":"application/json",
 
         "Authorization":
-        "Bearer SUA_API_KEY"
+        "Bearer SUA_OPENAI_API_KEY"
+
       },
 
       body:JSON.stringify({
@@ -417,16 +420,20 @@ async function responder(text){
         messages:[
 
           {
+
             role:"system",
 
             content:
-            "Você é ORION, uma IA futurista, elegante e inteligente."
+            "Você é ORION, uma IA futurista, inteligente e elegante."
+
           },
 
           {
+
             role:"user",
 
             content:text
+
           }
 
         ]
@@ -438,6 +445,19 @@ async function responder(text){
     const data =
     await response.json();
 
+    console.log(data);
+
+    if(data.error){
+
+      statusText.innerText =
+      data.error.message;
+
+      orb.classList.remove("thinking");
+
+      return;
+
+    }
+
     const reply =
     data.choices[0].message.content;
 
@@ -446,6 +466,8 @@ async function responder(text){
   }
 
   catch(err){
+
+    console.log(err);
 
     statusText.innerText =
     "Falha neural.";
@@ -456,38 +478,89 @@ async function responder(text){
 
 }
 
-/* VOICE */
+/* ELEVENLABS VOICE */
 
-function falar(text){
+async function falar(text){
 
   statusText.innerText = text;
 
-  const speech =
-  new SpeechSynthesisUtterance(text);
+  orb.classList.remove("thinking");
 
-  speech.lang = "pt-BR";
+  orb.classList.add("speaking");
 
-  speech.pitch = 0.9;
+  try{
 
-  speech.rate = 1;
+    const response = await fetch(
 
-  speech.volume = 1;
+      "https://api.elevenlabs.io/v1/text-to-speech/qxTFXDYbGcR8GaHSjczg",
 
-  speech.onstart = () => {
+      {
 
-    orb.classList.remove("thinking");
+        method:"POST",
 
-    orb.classList.add("speaking");
+        headers:{
 
-  };
+          "Accept":"audio/mpeg",
 
-  speech.onend = () => {
+          "Content-Type":"application/json",
+
+          "xi-api-key":"SUA_API_KEY_11LABS"
+
+        },
+
+        body:JSON.stringify({
+
+          text:text,
+
+          model_id:"eleven_multilingual_v2",
+
+          voice_settings:{
+
+            stability:0.45,
+
+            similarity_boost:0.85,
+
+            style:0.6,
+
+            use_speaker_boost:true
+
+          }
+
+        })
+
+      }
+
+    );
+
+    const audioBlob =
+    await response.blob();
+
+    const audioUrl =
+    URL.createObjectURL(audioBlob);
+
+    const audio =
+    new Audio(audioUrl);
+
+    audio.play();
+
+    audio.onended = () => {
+
+      orb.classList.remove("speaking");
+
+    };
+
+  }
+
+  catch(err){
+
+    console.log(err);
 
     orb.classList.remove("speaking");
 
-  };
+    statusText.innerText =
+    "Falha na voz neural.";
 
-  speechSynthesis.speak(speech);
+  }
 
 }
 
