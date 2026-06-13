@@ -313,63 +313,6 @@ body {
   z-index: 2;
 }
 
-/* ── Mic bars INSIDE the orb ── */
-.mic-bars {
-  position: absolute;
-  /* center within the orb */
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.4s ease;
-  z-index: 1;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.mic-bars.active { opacity: 1; }
-
-/* Bar container sits at exact center of orb */
-.mic-bars-inner {
-  position: relative;
-  width: 100%;
-  height: 100%;
-}
-
-.mic-bar {
-  position: absolute;
-  bottom: 50%;
-  left: 50%;
-  width: 2.5px;
-  background: linear-gradient(to top, rgba(0,229,255,0.80), rgba(100,200,255,0.30));
-  border-radius: 2px 2px 0 0;
-  transform-origin: bottom center;
-  transition: height 0.08s ease;
-  margin-left: -1.25px;
-}
-
-/* ── Ripple ring on listening ── */
-.ripple-ring {
-  position: absolute;
-  border-radius: 50%;
-  border: 1px solid rgba(0,229,255,0.35);
-  animation: rippleExpand 2s ease-out infinite;
-  pointer-events: none;
-  opacity: 0;
-}
-.ripple-ring:nth-child(1) { animation-delay: 0s; }
-.ripple-ring:nth-child(2) { animation-delay: 0.7s; }
-.ripple-ring:nth-child(3) { animation-delay: 1.4s; }
-@keyframes rippleExpand {
-  0%   { width: var(--orb-size); height: var(--orb-size); opacity: 0.55; }
-  100% { width: calc(var(--orb-size) * 1.8); height: calc(var(--orb-size) * 1.8); opacity: 0; }
-}
-.ripple-rings { display: none; }
-.orb.listening ~ .ripple-rings,
-.orb-scene.active-listen .ripple-rings { display: block; }
-
 /* ── Status label ── */
 .status {
   font-size: clamp(10px, 1.6vw, 13px);
@@ -463,21 +406,9 @@ body {
     <div class="orb" id="orb">
       <canvas class="orb-canvas" id="orbCanvas"></canvas>
 
-      <!-- Mic bars INSIDE the orb -->
-      <div class="mic-bars" id="micBars">
-        <div class="mic-bars-inner" id="micBarsInner"></div>
-      </div>
-
       <div class="glass-highlight"></div>
       <div class="glass-rim"></div>
       <div class="glass-side"></div>
-    </div>
-
-    <!-- Ripple rings (listening state) -->
-    <div class="ripple-rings" id="rippleRings">
-      <div class="ripple-ring"></div>
-      <div class="ripple-ring"></div>
-      <div class="ripple-ring"></div>
     </div>
 
   </div>
@@ -618,82 +549,10 @@ function drawAurora(ts) {
 requestAnimationFrame(drawAurora);
 
 
-/* ── MIC BARS (inside orb) ── */
-const micBarsEl    = document.getElementById('micBars');
-const micBarsInner = document.getElementById('micBarsInner');
-const BAR_COUNT    = 24;
-const micBarEls    = [];
-let   micStream    = null;
-let   micAnalyser  = null;
-let   micData      = null;
-let   micRaf       = null;
-
-/* Build bars after DOM is ready so orb size is known */
-function buildMicBars() {
-  micBarsInner.innerHTML = '';
-  micBarEls.length = 0;
-  /* Bars radiate from center; radius = ~38% of orb so they stay well inside */
-  const RAD_FRAC = 0.38; /* fraction of orb radius to place bar origins */
-  for (let i = 0; i < BAR_COUNT; i++) {
-    const bar   = document.createElement('div');
-    bar.className = 'mic-bar';
-    const angleDeg = (i / BAR_COUNT) * 360;
-    const angleRad = (angleDeg * Math.PI) / 180;
-    /* Position bar pivot at radius from center */
-    const orbPx   = orb.offsetWidth;
-    const pivotR   = orbPx * RAD_FRAC;
-    const px = 50 + (Math.cos(angleRad) * pivotR / orbPx) * 100;
-    const py = 50 + (Math.sin(angleRad) * pivotR / orbPx) * 100;
-    bar.style.left           = px + '%';
-    bar.style.bottom         = (100 - py) + '%';
-    bar.style.transformOrigin = 'bottom center';
-    bar.style.transform      = `translateX(-50%) rotate(${angleDeg + 90}deg)`;
-    bar.style.height         = '5px';
-    bar.style.marginLeft     = '0';
-    micBarsInner.appendChild(bar);
-    micBarEls.push(bar);
-  }
-}
-buildMicBars();
-window.addEventListener('resize', buildMicBars);
-
-function startMicVisualizer(stream) {
-  const AudioContext = window.AudioContext || window.webkitAudioContext;
-  if (!AudioContext) return;
-  const actx   = new AudioContext();
-  const src    = actx.createMediaStreamSource(stream);
-  micAnalyser  = actx.createAnalyser();
-  micAnalyser.fftSize = 64;
-  src.connect(micAnalyser);
-  micData = new Uint8Array(micAnalyser.frequencyBinCount);
-  micBarsEl.classList.add('active');
-
-  function draw() {
-    micRaf = requestAnimationFrame(draw);
-    micAnalyser.getByteFrequencyData(micData);
-    micBarEls.forEach((bar, i) => {
-      const idx = Math.floor(i * micData.length / BAR_COUNT);
-      const val = micData[idx] / 255;
-      bar.style.height  = (5 + val * 18) + 'px';
-      bar.style.opacity = 0.4 + val * 0.6;
-    });
-  }
-  draw();
-}
-
-function stopMicVisualizer() {
-  cancelAnimationFrame(micRaf);
-  micBarsEl.classList.remove('active');
-  micBarEls.forEach(b => { b.style.height = '5px'; b.style.opacity = '0.4'; });
-  if (micStream) { micStream.getTracks().forEach(t => t.stop()); micStream = null; }
-}
-
-
 /* ── STATE ── */
 const statusEl     = document.getElementById('status');
 const transcriptEl = document.getElementById('transcript');
 const orbScene     = document.getElementById('orbScene');
-const rippleRings  = document.getElementById('rippleRings');
 
 const STATES = {
   idle:      { cls:'',          sceneCls:'',               status:'Toque para ativar',   amplitude:1.0,  speed:1.0  },
@@ -720,9 +579,6 @@ function setState(name) {
   targetAmplitude = state.amplitude;
   targetSpeed     = state.speed;
   if (state.status) statusEl.textContent = state.status;
-
-  /* ripple rings */
-  rippleRings.style.display = name === 'listening' ? 'block' : 'none';
 }
 
 
@@ -741,23 +597,17 @@ if (SpeechRecognition) {
     isListening = true;
     setState('listening');
     setTranscript('', false);
-    navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-      micStream = stream;
-      startMicVisualizer(stream);
-    }).catch(() => {});
   };
 
   recognition.onerror = (e) => {
     console.warn('Speech error:', e.error);
     isListening = false;
-    stopMicVisualizer();
     setState('error');
     setTranscript('', false);
     setTimeout(() => setState('idle'), 2500);
   };
 
   recognition.onend = () => {
-    stopMicVisualizer();
     if (isListening) {
       isListening = false;
       if (currentState === 'listening') {
@@ -778,7 +628,6 @@ if (SpeechRecognition) {
     setTranscript(final || interim, true);
     if (final.trim()) {
       isListening = false;
-      stopMicVisualizer();
       setState('thinking');
       setTimeout(() => responder(final.trim()), 300);
     }
@@ -842,41 +691,38 @@ function stopSpeakPulse() {
 }
 
 
-/* ── ANTHROPIC ── */
-let ANTHROPIC_API_KEY = localStorage.getItem('orion_anthropic_key') || '';
+/* ── GEMINI ── */
+let GEMINI_API_KEY = localStorage.getItem('orion_gemini_key') || '';
 
 const ORION_PERSONA = `Você é ORION, um assistente de IA futurista e elegante, inspirado em J.A.R.V.I.S.
 Responda SEMPRE em português do Brasil.
 Seja inteligente, direto e sofisticado — como uma IA de ficção científica real.
 Respostas curtas e objetivas para perguntas simples. Elabore apenas quando necessário.
-Nunca diga que é Claude ou mencione a Anthropic. Você é ORION.`;
+Nunca diga que é Gemini ou mencione o Google. Você é ORION.`;
 
 async function responder(texto) {
-  if (!ANTHROPIC_API_KEY) {
-    const key = prompt('Cole sua Anthropic API Key para ativar o ORION:');
+  if (!GEMINI_API_KEY) {
+    const key = prompt('Cole sua Gemini API Key para ativar o ORION:');
     if (!key?.trim()) { setState('idle'); return; }
-    ANTHROPIC_API_KEY = key.trim();
-    localStorage.setItem('orion_anthropic_key', ANTHROPIC_API_KEY);
+    GEMINI_API_KEY = key.trim();
+    localStorage.setItem('orion_gemini_key', GEMINI_API_KEY);
   }
 
   setState('thinking');
 
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 300,
-        system: ORION_PERSONA,
-        messages: [{ role:'user', content: texto }]
-      })
-    });
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          system_instruction: { parts: [{ text: ORION_PERSONA }] },
+          contents: [{ role: 'user', parts: [{ text: texto }] }],
+          generationConfig: { maxOutputTokens: 300, temperature: 0.85 }
+        })
+      }
+    );
 
     if (!response.ok) {
       const err = await response.json().catch(() => ({}));
@@ -884,7 +730,7 @@ async function responder(texto) {
     }
 
     const data  = await response.json();
-    const reply = data.content?.[0]?.text?.trim();
+    const reply = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
     if (!reply) throw new Error('Resposta vazia.');
 
     const clean = reply
@@ -898,10 +744,10 @@ async function responder(texto) {
     falar(clean);
 
   } catch (err) {
-    console.error('Anthropic error:', err);
-    if (/401|403|authentication/i.test(err.message)) {
-      localStorage.removeItem('orion_anthropic_key');
-      ANTHROPIC_API_KEY = '';
+    console.error('Gemini error:', err);
+    if (/400|401|403|API_KEY/i.test(err.message)) {
+      localStorage.removeItem('orion_gemini_key');
+      GEMINI_API_KEY = '';
     }
     setState('error');
     statusEl.textContent = 'Falha na conexão neural.';
@@ -944,10 +790,10 @@ orbScene.addEventListener('keydown', (e) => {
 if (synth.onvoiceschanged !== undefined) synth.onvoiceschanged = () => {};
 
 document.getElementById('keyBtn').addEventListener('click', () => {
-  const key = prompt('Cole sua nova Anthropic API Key:');
+  const key = prompt('Cole sua nova Gemini API Key:');
   if (key?.trim()) {
-    ANTHROPIC_API_KEY = key.trim();
-    localStorage.setItem('orion_anthropic_key', ANTHROPIC_API_KEY);
+    GEMINI_API_KEY = key.trim();
+    localStorage.setItem('orion_gemini_key', GEMINI_API_KEY);
     statusEl.textContent = 'API Key atualizada.';
     setTimeout(() => setState('idle'), 2000);
   }
