@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ORION V3</title>
+<title>ORION V2.5</title>
 <link rel="icon" type="image/png" href="favicon.png">
 <style>
 /* ═══════════════════════════════════════════════════════
@@ -26,7 +26,7 @@
 }
 
 body {
-  background: var(--black);
+  background: #000000;
   height: 100dvh; width: 100vw;
   overflow: hidden;
   display: flex; justify-content: center; align-items: center;
@@ -36,10 +36,70 @@ body {
   touch-action: none;
 }
 
-/* ── Ambient background ── */
-.ambient { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+/* ── Ambient deep-space background ── */
+.ambient { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+
+/* Deep radial gradient base, like floating in space */
+.space-gradient {
+  position: absolute; inset: -10%;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 20%, rgba(30,42,90,0.55) 0%, transparent 60%),
+    radial-gradient(ellipse 70% 70% at 85% 80%, rgba(50,20,80,0.40) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 60% at 10% 85%, rgba(10,40,60,0.35) 0%, transparent 60%),
+    radial-gradient(circle at 50% 50%, #050511 0%, #020207 55%, #000000 100%);
+}
+
+/* Starfield layers (parallax via slow drift) */
+.stars {
+  position: absolute; inset: 0;
+  background-repeat: repeat;
+  animation: starDrift 180s linear infinite;
+  opacity: 0.8;
+}
+.stars-1 {
+  background-image:
+    radial-gradient(1px 1px at 10% 20%, #fff 100%, transparent 0),
+    radial-gradient(1px 1px at 35% 65%, #fff 100%, transparent 0),
+    radial-gradient(1px 1px at 60% 15%, #cdd9ff 100%, transparent 0),
+    radial-gradient(1px 1px at 80% 50%, #fff 100%, transparent 0),
+    radial-gradient(1px 1px at 25% 85%, #fff 100%, transparent 0),
+    radial-gradient(1px 1px at 92% 30%, #cdd9ff 100%, transparent 0),
+    radial-gradient(1px 1px at 48% 40%, #fff 100%, transparent 0),
+    radial-gradient(1px 1px at 70% 90%, #fff 100%, transparent 0);
+  background-size: 420px 420px;
+  opacity: 0.55;
+}
+.stars-2 {
+  background-image:
+    radial-gradient(1.4px 1.4px at 15% 50%, #fff 100%, transparent 0),
+    radial-gradient(1.4px 1.4px at 45% 12%, #aecbff 100%, transparent 0),
+    radial-gradient(1.4px 1.4px at 65% 75%, #fff 100%, transparent 0),
+    radial-gradient(1.4px 1.4px at 88% 22%, #fff 100%, transparent 0),
+    radial-gradient(1.4px 1.4px at 30% 30%, #fff 100%, transparent 0),
+    radial-gradient(1.4px 1.4px at 78% 65%, #aecbff 100%, transparent 0);
+  background-size: 620px 620px;
+  animation-duration: 280s;
+  animation-direction: reverse;
+  opacity: 0.40;
+}
+.stars-3 {
+  background-image:
+    radial-gradient(2px 2px at 22% 22%, #fff 100%, transparent 0),
+    radial-gradient(2px 2px at 58% 58%, #fff 100%, transparent 0),
+    radial-gradient(2px 2px at 82% 12%, #fff 100%, transparent 0),
+    radial-gradient(2px 2px at 12% 75%, #fff 100%, transparent 0);
+  background-size: 900px 900px;
+  animation-duration: 360s;
+  opacity: 0.25;
+  box-shadow: none;
+}
+@keyframes starDrift {
+  from { transform: translate(0,0); }
+  to   { transform: translate(-200px,-120px); }
+}
+
 .ambient-blob {
-  position: absolute; border-radius: 50%; filter: blur(120px); opacity: 0.08;
+  position: absolute; border-radius: 50%; filter: blur(120px); opacity: 0.07;
   animation: blobDrift 22s ease-in-out infinite alternate;
 }
 .blob-1 { width:60vw; height:60vw; background:var(--blue);   top:-20%; left:-15%; animation-delay:0s; }
@@ -246,22 +306,13 @@ body {
   color: rgba(232,240,255,0.20); pointer-events: none; z-index: 2;
 }
 
-/* ── Memory badge ── */
-.memory-badge {
-  position: fixed; top: 28px; right: 22px;
-  font-size: 10px; font-weight: 300; letter-spacing: 0.15em;
-  text-transform: uppercase; color: rgba(232,240,255,0.18);
-  cursor: pointer; z-index: 10;
-  transition: color 0.2s ease;
+/* ── Version badge (bottom-left) ── */
+.version-badge {
+  position: fixed; bottom: 22px; left: 22px;
+  font-size: 10px; font-weight: 300; letter-spacing: 0.18em;
+  text-transform: uppercase; color: rgba(232,240,255,0.20);
+  pointer-events: none; z-index: 10;
 }
-.memory-badge:hover { color: rgba(232,240,255,0.55); }
-.memory-badge .dot {
-  display: inline-block; width: 5px; height: 5px;
-  border-radius: 50%; background: var(--cyan); opacity: 0.5;
-  margin-right: 6px; vertical-align: middle;
-  animation: memDot 2s ease-in-out infinite;
-}
-@keyframes memDot { 0%,100%{opacity:0.5} 50%{opacity:1} }
 
 /* ── Settings button ── */
 .key-btn {
@@ -278,42 +329,6 @@ body {
   color: rgba(255,255,255,0.60);
   border-color: rgba(255,255,255,0.18);
 }
-
-/* ── Memory panel ── */
-.memory-panel {
-  position: fixed; top: 60px; right: 22px;
-  width: 260px;
-  background: rgba(10,10,24,0.88);
-  border: 1px solid rgba(255,255,255,0.10);
-  border-radius: 16px;
-  backdrop-filter: blur(24px);
-  padding: 18px 20px;
-  z-index: 20;
-  font-size: 12px; line-height: 1.7;
-  color: rgba(232,240,255,0.55);
-  transform: translateY(-8px);
-  opacity: 0; pointer-events: none;
-  transition: opacity 0.25s ease, transform 0.25s ease;
-}
-.memory-panel.visible { opacity: 1; pointer-events: auto; transform: translateY(0); }
-.memory-panel h4 {
-  font-size: 10px; font-weight: 300;
-  letter-spacing: 0.3em; text-transform: uppercase;
-  color: rgba(232,240,255,0.30); margin-bottom: 12px;
-}
-.memory-panel .mem-row { display: flex; justify-content: space-between; gap: 8px; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
-.memory-panel .mem-row:last-child { border-bottom: none; }
-.memory-panel .mem-key { color: rgba(0,229,255,0.60); flex-shrink: 0; }
-.memory-panel .mem-val { color: rgba(232,240,255,0.70); text-align: right; }
-.memory-panel .clear-btn {
-  margin-top: 14px; width: 100%;
-  background: rgba(255,55,75,0.08); border: 1px solid rgba(255,55,75,0.20);
-  color: rgba(255,55,75,0.55); border-radius: 8px;
-  font-size: 10px; letter-spacing: 0.2em;
-  text-transform: uppercase; cursor: pointer;
-  padding: 6px 0; transition: all 0.2s ease;
-}
-.memory-panel .clear-btn:hover { background: rgba(255,55,75,0.15); color: rgba(255,55,75,0.90); }
 
 /* ── API panel ── */
 .api-panel {
@@ -365,23 +380,23 @@ body {
 
 @media (max-width: 480px) { .scene { gap: 22px; } }
 @media (prefers-reduced-motion: reduce) {
-  .orb, .halo-ring, .ambient-blob { animation: none !important; }
+  .orb, .halo-ring, .ambient-blob, .stars { animation: none !important; }
 }
 </style>
 </head>
 <body>
 
 <div class="ambient">
+  <div class="space-gradient"></div>
+  <div class="stars stars-3"></div>
+  <div class="stars stars-2"></div>
+  <div class="stars stars-1"></div>
   <div class="ambient-blob blob-1"></div>
   <div class="ambient-blob blob-2"></div>
   <div class="ambient-blob blob-3"></div>
 </div>
 
 <p class="orion-name">Orion</p>
-
-<div class="memory-badge" id="memBadge">
-  <span class="dot"></span>memória
-</div>
 
 <main class="scene">
   <div class="orb-scene" id="orbScene" role="button" aria-label="Ativar ORION" tabindex="0">
@@ -400,12 +415,7 @@ body {
 
 <p class="hint-pill" id="hintPill">pressione · fale · solte</p>
 
-<!-- Memory panel -->
-<div class="memory-panel" id="memPanel">
-  <h4>núcleo de memória</h4>
-  <div id="memContent"></div>
-  <button class="clear-btn" id="clearMem">Limpar memória</button>
-</div>
+<p class="version-badge">versão 2.5</p>
 
 <!-- API settings panel -->
 <div class="api-panel" id="apiPanel">
@@ -590,127 +600,9 @@ const ORB = (() => {
 </script>
 
 <!-- ═══════════════════════════════════════════════════════
-     ORION MEMORY — memory.js
-     Sistema de memória local persistente
-═══════════════════════════════════════════════════════ -->
-<script>
-const MEMORY = (() => {
-  const STORAGE_KEY = 'orion_memory_v3';
-  const MAX_HISTORY = 20;
-
-  let data = {
-    userName:    null,
-    preferences: {},
-    facts:       {},
-    history:     [],
-    sessionCount: 0,
-    lastSeen:    null,
-  };
-
-  function load() {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) data = { ...data, ...JSON.parse(raw) };
-    } catch(e) {}
-    data.sessionCount = (data.sessionCount || 0) + 1;
-    data.lastSeen = new Date().toLocaleDateString('pt-BR');
-    save();
-  }
-
-  function save() {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch(e) {}
-  }
-
-  function clear() {
-    data = { userName:null, preferences:{}, facts:{}, history:[], sessionCount:0, lastSeen:null };
-    save();
-  }
-
-  function addHistory(role, text) {
-    data.history.push({ role, text, ts: Date.now() });
-    if (data.history.length > MAX_HISTORY) data.history = data.history.slice(-MAX_HISTORY);
-    save();
-  }
-
-  function getRecentHistory(n = 6) {
-    return data.history.slice(-n);
-  }
-
-  function setUserName(name) {
-    data.userName = name; save();
-  }
-
-  function setPreference(key, value) {
-    data.preferences[key] = value; save();
-  }
-
-  function setFact(key, value) {
-    data.facts[key] = value; save();
-  }
-
-  function get() { return data; }
-
-  /* Extract and store facts from user speech */
-  function extractFromText(text) {
-    const t = text.toLowerCase();
-
-    /* Name extraction */
-    const namePatterns = [
-      /meu nome[é\s]+([a-záàãâéêíóôõúü]+)/i,
-      /pode me chamar de ([a-záàãâéêíóôõúü]+)/i,
-      /sou o ([a-záàãâéêíóôõúü]+)/i,
-      /sou a ([a-záàãâéêíóôõúü]+)/i,
-      /me chamo ([a-záàãâéêíóôõúü]+)/i,
-    ];
-    for (const p of namePatterns) {
-      const m = text.match(p);
-      if (m?.[1]) {
-        const name = m[1].trim();
-        if (name.length > 1 && name.length < 32) { setUserName(name); return name; }
-      }
-    }
-
-    /* Preference extraction: "gosto de X", "prefiro X" */
-    const prefPatterns = [
-      { rx: /gosto de ([^.!?,]+)/i,   key: 'gosta_de' },
-      { rx: /prefiro ([^.!?,]+)/i,    key: 'prefere' },
-      { rx: /meu trabalho[éé\s]+([^.!?,]+)/i, key: 'trabalho' },
-      { rx: /trabalho (?:como|com|na|no) ([^.!?,]+)/i, key: 'trabalho' },
-      { rx: /moro em ([^.!?,]+)/i,    key: 'localidade' },
-      { rx: /tenho (\d+) anos/i,      key: 'idade' },
-    ];
-    for (const { rx, key } of prefPatterns) {
-      const m = text.match(rx);
-      if (m?.[1]) setFact(key, m[1].trim());
-    }
-
-    return null;
-  }
-
-  function buildContextString() {
-    const d = data;
-    const parts = [];
-    if (d.userName)                       parts.push(`Nome do usuário: ${d.userName}`);
-    if (Object.keys(d.facts).length > 0) parts.push(`Fatos sobre o usuário: ${JSON.stringify(d.facts)}`);
-    if (Object.keys(d.preferences).length > 0) parts.push(`Preferências: ${JSON.stringify(d.preferences)}`);
-    if (d.sessionCount > 1)               parts.push(`Número de sessões: ${d.sessionCount}`);
-    return parts.join('\n');
-  }
-
-  function buildHistoryForAPI() {
-    return getRecentHistory().map(h => ({
-      role: h.role === 'user' ? 'user' : 'assistant',
-      content: h.text
-    }));
-  }
-
-  return { load, save, clear, addHistory, getRecentHistory, setUserName, setPreference, setFact, get, extractFromText, buildContextString, buildHistoryForAPI };
-})();
-</script>
-
-<!-- ═══════════════════════════════════════════════════════
      ORION VOICE — voice.js
      Reconhecimento e síntese de voz
+     Voz masculina otimizada, estilo J.A.R.V.I.S
 ═══════════════════════════════════════════════════════ -->
 <script>
 const VOICE = (() => {
@@ -723,10 +615,87 @@ const VOICE = (() => {
   let onStateChange = null;
 
   let speakPulseTimer = null;
+  let cachedVoice      = null;
+  let voicesReady       = false;
+
+  /* ─── Seleção da melhor voz masculina disponível ───
+     Prioridade:
+     1. Voz PT-BR masculina local (alta qualidade, baixa latência)
+     2. Voz PT-BR masculina qualquer
+     3. Voz PT (Portugal) masculina
+     4. Voz EN masculina "premium"/neural de boa qualidade (fallback,
+        mais grave e robusta que a maioria das vozes PT disponíveis)
+     5. Qualquer voz PT-BR
+     6. Primeira voz disponível
+  */
+  const MALE_NAME_HINTS = [
+    'male', 'homem', 'masculin', 'daniel', 'felipe', 'ricardo', 'antonio',
+    'diego', 'bruno', 'thiago', 'fred', 'george', 'arthur', 'guy', 'david',
+    'mark', 'alex', 'matthew', 'brian', 'eric', 'james', 'paulo'
+  ];
+  const FEMALE_NAME_HINTS = [
+    'female', 'mulher', 'feminin', 'luciana', 'maria', 'francisca', 'camila',
+    'vitoria', 'vitória', 'samantha', 'karen', 'susan', 'zira', 'fernanda',
+    'joana', 'helena'
+  ];
+  const PREMIUM_HINTS = ['neural', 'premium', 'enhanced', 'natural', 'wavenet', 'online'];
+
+  function scoreVoice(v) {
+    const name = v.name.toLowerCase();
+    let score = 0;
+
+    const isPTBR = v.lang?.toLowerCase() === 'pt-br';
+    const isPT   = v.lang?.toLowerCase().startsWith('pt');
+    const isEN   = v.lang?.toLowerCase().startsWith('en');
+
+    const looksMale   = MALE_NAME_HINTS.some(h => name.includes(h));
+    const looksFemale = FEMALE_NAME_HINTS.some(h => name.includes(h));
+    const looksPremium = PREMIUM_HINTS.some(h => name.includes(h));
+
+    if (isPTBR) score += 50;
+    else if (isPT) score += 30;
+    else if (isEN) score += 10;
+    else return -1; /* outros idiomas: descarta */
+
+    if (looksMale) score += 40;
+    if (looksFemale) score -= 35;
+    if (looksPremium) score += 20;
+    if (v.localService) score += 8;
+
+    return score;
+  }
+
+  function pickBestVoice() {
+    const voices = synth.getVoices();
+    if (!voices.length) return null;
+
+    let best = null, bestScore = -Infinity;
+    for (const v of voices) {
+      const s = scoreVoice(v);
+      if (s > bestScore) { bestScore = s; best = v; }
+    }
+    /* Se nada pontuou bem, recorre a qualquer voz pt */
+    if (!best) {
+      best = voices.find(v => v.lang?.toLowerCase().startsWith('pt')) || voices[0];
+    }
+    return best;
+  }
+
+  function refreshVoiceCache() {
+    const v = pickBestVoice();
+    if (v) { cachedVoice = v; voicesReady = true; }
+  }
 
   function init(callbacks) {
     onResult      = callbacks.onResult;
     onStateChange = callbacks.onStateChange;
+
+    if (synth) {
+      refreshVoiceCache();
+      if (synth.onvoiceschanged !== undefined) {
+        synth.onvoiceschanged = refreshVoiceCache;
+      }
+    }
 
     if (!SpeechRec) { console.warn('SpeechRecognition não suportado.'); return; }
 
@@ -786,17 +755,17 @@ const VOICE = (() => {
   function speak(text, onStart, onEnd) {
     synth.cancel();
     const utt = new SpeechSynthesisUtterance(text);
-    utt.lang   = 'pt-BR';
-    utt.rate   = 0.93;
-    utt.pitch  = 1.0;
-    utt.volume = 1.0;
 
-    /* Pick best Portuguese voice */
-    const voices = synth.getVoices();
-    const ptVoice = voices.find(v => v.lang === 'pt-BR' && v.localService)
-                 || voices.find(v => v.lang.startsWith('pt-BR'))
-                 || voices.find(v => v.lang.startsWith('pt'));
-    if (ptVoice) utt.voice = ptVoice;
+    if (!voicesReady) refreshVoiceCache();
+    const voice = cachedVoice;
+
+    utt.lang   = voice ? voice.lang : 'pt-BR';
+    /* Rate levemente abaixo do normal e pitch um pouco mais grave
+       para soar mais elegante, calmo e "robótico-sofisticado" — J.A.R.V.I.S */
+    utt.rate   = 0.90;
+    utt.pitch  = 0.82;
+    utt.volume = 1.0;
+    if (voice) utt.voice = voice;
 
     utt.onstart = () => {
       startSpeakPulse();
@@ -814,14 +783,11 @@ const VOICE = (() => {
 
   function startSpeakPulse() {
     speakPulseTimer = setInterval(() => {
-      /* Visual pulse driven by voice timing */
       document.dispatchEvent(new CustomEvent('orion:speakpulse'));
     }, 110);
   }
 
   function stopSpeakPulse() { clearInterval(speakPulseTimer); }
-
-  if (synth.onvoiceschanged !== undefined) synth.onvoiceschanged = () => {};
 
   return { init, startListening, stopListening, speak, stopSpeaking, isSpeaking, isAvailable: !!SpeechRec };
 })();
@@ -830,6 +796,7 @@ const VOICE = (() => {
 <!-- ═══════════════════════════════════════════════════════
      ORION CORE — orion-core.js
      Personalidade, comandos internos e roteamento de IA
+     (sem memória local — cada sessão começa do zero)
 ═══════════════════════════════════════════════════════ -->
 <script>
 const ORION_CORE = (() => {
@@ -837,10 +804,27 @@ const ORION_CORE = (() => {
   /* ─── Personalidade e respostas internas ─── */
   const IDENTITY = {
     name: 'ORION',
-    version: '3.0',
+    version: '2.5',
     creator: 'Arquitetura proprietária',
     mission: 'Auxiliar com inteligência, organização e tecnologia.',
   };
+
+  /* Histórico de conversa em memória volátil (apenas durante a sessão atual,
+     usado só para dar contexto às respostas da API externa — não é salvo) */
+  let sessionHistory = [];
+  const MAX_HISTORY = 12;
+
+  function addHistory(role, text) {
+    sessionHistory.push({ role, text });
+    if (sessionHistory.length > MAX_HISTORY) sessionHistory = sessionHistory.slice(-MAX_HISTORY);
+  }
+
+  function buildHistoryForAPI() {
+    return sessionHistory.map(h => ({
+      role: h.role === 'user' ? 'user' : 'assistant',
+      content: h.text
+    }));
+  }
 
   /* Banco de respostas da personalidade ORION */
   const INTERNAL_RESPONSES = {
@@ -848,11 +832,6 @@ const ORION_CORE = (() => {
       'Olá. Sistemas operacionais. Como posso auxiliá-lo?',
       'Pronto. O que precisa?',
       'Online e a postos. Pode falar.',
-    ],
-    greetingWithName: (name) => [
-      `Olá, ${name}. Sistemas a postos.`,
-      `Bem-vindo de volta, ${name}. Como posso ajudar?`,
-      `${name}. Estou aqui. Pode falar.`,
     ],
     whoAreYou: [
       'Sou o ORION — seu assistente inteligente. Fui projetado para auxiliá-lo com precisão e eficiência.',
@@ -862,7 +841,7 @@ const ORION_CORE = (() => {
       'Minha missão: auxiliá-lo com inteligência, organização e tecnologia. Sou mais eficiente a cada interação.',
     ],
     capabilities: [
-      'Posso responder perguntas, lembrar informações sobre você, consultar IAs externas e controlar esta interface. O que deseja?',
+      'Posso responder perguntas, consultar IAs externas e controlar esta interface. O que deseja?',
     ],
     thanks: [
       'Para isso estou aqui.',
@@ -873,17 +852,14 @@ const ORION_CORE = (() => {
       'Sistemas em modo de espera. Até logo.',
       'Permanecerei em standby. Quando precisar, estarei aqui.',
     ],
-    nameAcknowledge: (name) => `Memorizado. Posso chamá-lo de ${name} daqui em diante.`,
-    memoryCleared: 'Memória reinicializada. Começando do zero.',
-    helpResponse: 'Você pode me pedir para: lembrar seu nome, responder perguntas, contar o horário atual, consultar informações — e muito mais quando IAs externas estiverem conectadas.',
+    helpResponse: 'Você pode me pedir para: responder perguntas, contar o horário atual, consultar informações — e muito mais quando IAs externas estiverem conectadas.',
     timeResponse: () => {
       const now = new Date();
       return `São ${now.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' })} de ${now.toLocaleDateString('pt-BR', { weekday:'long', day:'numeric', month:'long' })}.`;
     },
     statusResponse: () => {
-      const m = MEMORY.get();
       const has_ext = getActiveAPI() !== null;
-      return `Sistemas normais. Memória: ${m.history.length} registros. IA externa: ${has_ext ? 'conectada' : 'desconectada'}. Sessão número ${m.sessionCount}.`;
+      return `Sistemas normais. IA externa: ${has_ext ? 'conectada' : 'desconectada'}.`;
     },
   };
 
@@ -896,11 +872,7 @@ const ORION_CORE = (() => {
   const COMMANDS = [
     {
       match: /\b(olá|oi|bom dia|boa tarde|boa noite|e aí|hello|hey)\b/i,
-      handle: () => {
-        const m = MEMORY.get();
-        if (m.userName) return rand(INTERNAL_RESPONSES.greetingWithName(m.userName));
-        return rand(INTERNAL_RESPONSES.greeting);
-      }
+      handle: () => rand(INTERNAL_RESPONSES.greeting)
     },
     {
       match: /quem[é\s]+(você|vc|tu)/i,
@@ -935,56 +907,6 @@ const ORION_CORE = (() => {
       handle: () => INTERNAL_RESPONSES.statusResponse()
     },
     {
-      match: /limpar? (memória|histórico|dados)/i,
-      handle: () => {
-        MEMORY.clear();
-        updateMemoryPanel();
-        return INTERNAL_RESPONSES.memoryCleared;
-      }
-    },
-    {
-      match: /(meu nome|me chamo|pode me chamar|sou o|sou a)/i,
-      handle: (text) => {
-        const extracted = MEMORY.extractFromText(text);
-        if (extracted) {
-          updateMemoryPanel();
-          return INTERNAL_RESPONSES.nameAcknowledge(extracted);
-        }
-        return null; /* fallthrough */
-      }
-    },
-    /* Lembrar informação geral */
-    {
-      match: /(lembre que|lembra que|guarda que|anote que|registra que)/i,
-      handle: (text) => {
-        const m = text.replace(/(lembre que|lembra que|guarda que|anote que|registra que)\s*/i, '').trim();
-        if (m) {
-          MEMORY.setFact(`nota_${Date.now()}`, m);
-          updateMemoryPanel();
-          return `Registrado. Vou lembrar que ${m}.`;
-        }
-        return null;
-      }
-    },
-    {
-      match: /(o que você sabe sobre mim|o que sabe de mim|quem sou eu)/i,
-      handle: () => {
-        const d = MEMORY.get();
-        const parts = [];
-        if (d.userName) parts.push(`seu nome é ${d.userName}`);
-        if (d.facts.trabalho) parts.push(`você trabalha com ${d.facts.trabalho}`);
-        if (d.facts.localidade) parts.push(`mora em ${d.facts.localidade}`);
-        if (d.facts.idade) parts.push(`tem ${d.facts.idade} anos`);
-        if (Object.values(d.facts).filter(Boolean).length > parts.length) {
-          Object.entries(d.facts).forEach(([k, v]) => {
-            if (!['trabalho','localidade','idade'].includes(k)) parts.push(`${k}: ${v}`);
-          });
-        }
-        if (parts.length === 0) return 'Ainda não tenho muitas informações sobre você. Pode me contar mais.';
-        return `O que registrei: ${parts.join(', ')}.`;
-      }
-    },
-    {
       match: /(versão|qual versão|build|sistema)/i,
       handle: () => `ORION versão ${IDENTITY.version}. Arquitetura modular. IA externa: ${getActiveAPI() || 'não conectada'}.`
     },
@@ -1011,21 +933,18 @@ const ORION_CORE = (() => {
 
   /* ─── External API calls ─── */
   const ORION_SYSTEM = () => {
-    const mem = MEMORY.get();
-    const ctx = MEMORY.buildContextString();
     return `Você é ORION, um assistente de IA futurista e elegante, inspirado em J.A.R.V.I.S.
 Responda SEMPRE em português do Brasil.
 Seja inteligente, direto e sofisticado. Sem markdown, sem asteriscos, sem listas numeradas — apenas texto limpo para fala.
 Respostas curtas e objetivas para perguntas simples. Elabore apenas quando necessário.
 Nunca diga que é Gemini, Claude ou ChatGPT. Você é ORION.
-Você tem personalidade própria: preciso, elegante e levemente formal, como uma IA de ficção científica.
-${ctx ? '\nContexto do usuário:\n' + ctx : ''}`;
+Você tem personalidade própria: preciso, elegante e levemente formal, como uma IA de ficção científica.`;
   };
 
   async function callGemini(prompt) {
-    const history = MEMORY.buildHistoryForAPI();
+    const history = buildHistoryForAPI();
     const contents = [
-      ...history.slice(0,-1).map(h => ({ role: h.role, parts: [{ text: h.content }] })),
+      ...history.map(h => ({ role: h.role === 'assistant' ? 'model' : h.role, parts: [{ text: h.content }] })),
       { role: 'user', parts: [{ text: prompt }] }
     ];
     const res = await fetch(
@@ -1046,9 +965,9 @@ ${ctx ? '\nContexto do usuário:\n' + ctx : ''}`;
   }
 
   async function callClaude(prompt) {
-    const history = MEMORY.buildHistoryForAPI();
+    const history = buildHistoryForAPI();
     const messages = [
-      ...history.slice(0,-1),
+      ...history,
       { role: 'user', content: prompt }
     ];
     const res = await fetch('https://api.anthropic.com/v1/messages', {
@@ -1072,10 +991,10 @@ ${ctx ? '\nContexto do usuário:\n' + ctx : ''}`;
   }
 
   async function callOpenAI(prompt) {
-    const history = MEMORY.buildHistoryForAPI();
+    const history = buildHistoryForAPI();
     const messages = [
       { role: 'system', content: ORION_SYSTEM() },
-      ...history.slice(0,-1),
+      ...history,
       { role: 'user', content: prompt }
     ];
     const res = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -1096,19 +1015,13 @@ ${ctx ? '\nContexto do usuário:\n' + ctx : ''}`;
   }
 
   /* ─── FALLBACK INTERNO quando não há API ─── */
-  function fallbackResponse(text) {
-    const m = MEMORY.get();
-    const name = m.userName ? `, ${m.userName}` : '';
-    return `Entendi sua mensagem${name}. Para responder com mais precisão a perguntas complexas, conecte uma IA externa nas configurações. O que mais posso fazer por você?`;
+  function fallbackResponse() {
+    return 'Entendi sua mensagem. Para responder com mais precisão a perguntas complexas, conecte uma IA externa nas configurações. O que mais posso fazer por você?';
   }
 
   /* ─── PROCESSAMENTO CENTRAL ─── */
   async function process(userText) {
-    /* 1. Extrair fatos passivamente */
-    MEMORY.extractFromText(userText);
-    updateMemoryPanel();
-
-    /* 2. Verificar comandos internos */
+    /* 1. Verificar comandos internos */
     for (const cmd of COMMANDS) {
       if (cmd.match.test(userText)) {
         const reply = cmd.handle(userText);
@@ -1116,14 +1029,14 @@ ${ctx ? '\nContexto do usuário:\n' + ctx : ''}`;
       }
     }
 
-    /* 3. Tentar API externa */
+    /* 2. Tentar API externa */
     const extReply = await callExternalAPI(userText);
     if (extReply) {
       return cleanResponse(extReply);
     }
 
-    /* 4. Fallback interno */
-    return fallbackResponse(userText);
+    /* 3. Fallback interno */
+    return fallbackResponse();
   }
 
   function cleanResponse(text) {
@@ -1137,7 +1050,7 @@ ${ctx ? '\nContexto do usuário:\n' + ctx : ''}`;
       .trim();
   }
 
-  return { process, setKey, getActiveAPI, KEYS, IDENTITY, fallbackResponse };
+  return { process, setKey, getActiveAPI, KEYS, IDENTITY, addHistory, fallbackResponse };
 })();
 </script>
 
@@ -1149,10 +1062,6 @@ ${ctx ? '\nContexto do usuário:\n' + ctx : ''}`;
   /* ─── Elementos de UI ─── */
   const statusEl   = document.getElementById('status');
   const orbScene   = document.getElementById('orbScene');
-  const memPanel   = document.getElementById('memPanel');
-  const memContent = document.getElementById('memContent');
-  const memBadge   = document.getElementById('memBadge');
-  const clearMemBtn= document.getElementById('clearMem');
   const apiPanel   = document.getElementById('apiPanel');
   const keyBtn     = document.getElementById('keyBtn');
   const keyGemini  = document.getElementById('keyGemini');
@@ -1177,25 +1086,6 @@ ${ctx ? '\nContexto do usuário:\n' + ctx : ''}`;
     hintPill.style.opacity = name === 'idle' ? '1' : '0';
   }
 
-  /* ─── Memória: painel de exibição ─── */
-  window.updateMemoryPanel = function() {
-    const d = MEMORY.get();
-    const rows = [];
-    if (d.userName)    rows.push({ k:'nome',    v: d.userName });
-    if (d.lastSeen)    rows.push({ k:'visto',   v: d.lastSeen });
-    if (d.sessionCount) rows.push({ k:'sessões', v: d.sessionCount });
-    Object.entries(d.facts).forEach(([k, v]) => rows.push({ k, v }));
-    if (d.history.length) rows.push({ k:'memórias', v: d.history.length });
-
-    if (rows.length === 0) {
-      memContent.innerHTML = '<div style="color:rgba(232,240,255,0.25);font-size:11px">Nenhuma memória ainda.</div>';
-    } else {
-      memContent.innerHTML = rows.map(r =>
-        `<div class="mem-row"><span class="mem-key">${r.k}</span><span class="mem-val">${String(r.v).substring(0,30)}</span></div>`
-      ).join('');
-    }
-  };
-
   /* ─── API dots update ─── */
   function updateAPIDots() {
     dotGemini.className = 'dot-status ' + (ORION_CORE.KEYS.gemini ? 'dot-ok' : 'dot-off');
@@ -1208,12 +1098,11 @@ ${ctx ? '\nContexto do usuário:\n' + ctx : ''}`;
     if (!text.trim()) { setState('idle'); return; }
 
     setState('thinking');
-    MEMORY.addHistory('user', text);
+    ORION_CORE.addHistory('user', text);
 
     try {
       const reply = await ORION_CORE.process(text);
-      MEMORY.addHistory('assistant', reply);
-      updateMemoryPanel();
+      ORION_CORE.addHistory('assistant', reply);
 
       VOICE.speak(
         reply,
@@ -1285,19 +1174,6 @@ ${ctx ? '\nContexto do usuário:\n' + ctx : ''}`;
     }
   });
 
-  /* ─── Memory panel toggle ─── */
-  memBadge.addEventListener('click', () => {
-    const isOpen = memPanel.classList.toggle('visible');
-    if (isOpen) { updateMemoryPanel(); apiPanel.classList.remove('visible'); }
-  });
-
-  clearMemBtn.addEventListener('click', () => {
-    MEMORY.clear();
-    updateMemoryPanel();
-    setState('idle', 'Memória limpa.');
-    setTimeout(() => setState('idle'), 2000);
-  });
-
   /* ─── API panel toggle ─── */
   keyBtn.addEventListener('click', () => {
     const isOpen = apiPanel.classList.toggle('visible');
@@ -1306,7 +1182,6 @@ ${ctx ? '\nContexto do usuário:\n' + ctx : ''}`;
       keyClaude.value = ORION_CORE.KEYS.claude;
       keyOpenAI.value = ORION_CORE.KEYS.openai;
       updateAPIDots();
-      memPanel.classList.remove('visible');
     }
   });
 
@@ -1321,31 +1196,18 @@ ${ctx ? '\nContexto do usuário:\n' + ctx : ''}`;
     setTimeout(() => setState('idle'), 2500);
   });
 
-  /* ─── Click fora para fechar painéis ─── */
+  /* ─── Click fora para fechar painel ─── */
   document.addEventListener('click', (e) => {
-    if (!memPanel.contains(e.target) && e.target !== memBadge) memPanel.classList.remove('visible');
     if (!apiPanel.contains(e.target) && e.target !== keyBtn) apiPanel.classList.remove('visible');
   });
 
   /* ─── Inicialização ─── */
-  MEMORY.load();
   ORB.init();
-  updateMemoryPanel();
   updateAPIDots();
 
-  /* Saudação de boot */
+  /* Saudação de boot — direta, sem referências a sessões anteriores */
   setTimeout(() => {
-    const m = MEMORY.get();
-    const isReturn = m.sessionCount > 1;
-    let bootMsg;
-    if (m.userName && isReturn) {
-      bootMsg = `Bem-vindo de volta, ${m.userName}. ORION online.`;
-    } else if (isReturn) {
-      bootMsg = 'ORION online. Bom te ver novamente.';
-    } else {
-      bootMsg = 'ORION online. Toque para começar.';
-    }
-    setState('idle', bootMsg);
+    setState('idle', 'ORION online. Toque para começar.');
   }, 600);
 
 })();
