@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ORION V2.5</title>
+<title>ORION V3.0</title>
 <link rel="icon" type="image/png" href="favicon.png">
 <style>
 /* ═══════════════════════════════════════════════════════
@@ -334,6 +334,8 @@ body {
 .api-panel {
   position: fixed; bottom: 70px; right: 22px;
   width: 280px;
+  max-height: 80vh;
+  overflow-y: auto;
   background: rgba(10,10,24,0.92);
   border: 1px solid rgba(255,255,255,0.10);
   border-radius: 16px; backdrop-filter: blur(24px);
@@ -415,7 +417,7 @@ body {
 
 <p class="hint-pill" id="hintPill">pressione · fale · solte</p>
 
-<p class="version-badge">versão 2.5</p>
+<p class="version-badge">versão 3.0</p>
 
 <!-- API settings panel -->
 <div class="api-panel" id="apiPanel">
@@ -435,6 +437,21 @@ body {
     <input type="password" id="keyOpenAI" placeholder="cole sua key…">
     <div class="dot-status" id="dotOpenAI"></div>
   </div>
+
+  <h4 style="margin-top:18px">voz neural — elevenlabs</h4>
+  <div class="api-row">
+    <label>API Key</label>
+    <input type="password" id="keyElevenLabs" placeholder="cole sua key…">
+    <div class="dot-status" id="dotElevenLabs"></div>
+  </div>
+  <div class="api-row">
+    <label>Voice ID</label>
+    <input type="text" id="voiceIdElevenLabs" placeholder="opcional · ex: pNInz6obpgDQGcFmaJgB">
+  </div>
+  <p style="font-size:10px;line-height:1.5;color:rgba(232,240,255,0.30);margin:-2px 0 12px">
+    Sem Voice ID, ORION usa uma voz masculina grave padrão. Pegue a sua em elevenlabs.io.
+  </p>
+
   <button class="api-save" id="saveKeys">Salvar e ativar</button>
 </div>
 
@@ -601,8 +618,9 @@ const ORB = (() => {
 
 <!-- ═══════════════════════════════════════════════════════
      ORION VOICE — voice.js
-     Reconhecimento e síntese de voz
-     Voz masculina otimizada, estilo J.A.R.V.I.S
+     Reconhecimento de voz + síntese de voz.
+     Prioriza ElevenLabs (voz neural, estilo J.A.R.V.I.S);
+     cai para a voz nativa do navegador se não houver key.
 ═══════════════════════════════════════════════════════ -->
 <script>
 const VOICE = (() => {
@@ -618,16 +636,13 @@ const VOICE = (() => {
   let cachedVoice      = null;
   let voicesReady       = false;
 
-  /* ─── Seleção da melhor voz masculina disponível ───
-     Prioridade:
-     1. Voz PT-BR masculina local (alta qualidade, baixa latência)
-     2. Voz PT-BR masculina qualquer
-     3. Voz PT (Portugal) masculina
-     4. Voz EN masculina "premium"/neural de boa qualidade (fallback,
-        mais grave e robusta que a maioria das vozes PT disponíveis)
-     5. Qualquer voz PT-BR
-     6. Primeira voz disponível
-  */
+  let currentAudioEl    = null; /* elemento <audio> usado pelo ElevenLabs */
+
+  /* Voz padrão sugerida: masculina, grave, multilíngue (fala PT-BR bem) */
+  const DEFAULT_ELEVEN_VOICE_ID = 'onwK4e9ZLuTAKqWW03F9'; /* Daniel — voz masculina grave */
+  const ELEVEN_MODEL = 'eleven_multilingual_v2';
+
+  /* ═══ Seleção da melhor voz NATIVA disponível (fallback) ═══ */
   const MALE_NAME_HINTS = [
     'male', 'homem', 'masculin', 'daniel', 'felipe', 'ricardo', 'antonio',
     'diego', 'bruno', 'thiago', 'fred', 'george', 'arthur', 'guy', 'david',
@@ -655,7 +670,7 @@ const VOICE = (() => {
     if (isPTBR) score += 50;
     else if (isPT) score += 30;
     else if (isEN) score += 10;
-    else return -1; /* outros idiomas: descarta */
+    else return -1;
 
     if (looksMale) score += 40;
     if (looksFemale) score -= 35;
@@ -674,7 +689,6 @@ const VOICE = (() => {
       const s = scoreVoice(v);
       if (s > bestScore) { bestScore = s; best = v; }
     }
-    /* Se nada pontuou bem, recorre a qualquer voz pt */
     if (!best) {
       best = voices.find(v => v.lang?.toLowerCase().startsWith('pt')) || voices[0];
     }
@@ -752,7 +766,57 @@ const VOICE = (() => {
     if (recognition && isListening) { recognition.stop(); isListening = false; }
   }
 
-  function speak(text, onStart, onEnd) {
+  /* ═══ ElevenLabs — voz neural ═══ */
+  function getElevenLabsConfig() {
+    const apiKey  = localStorage.getItem('orion_key_elevenlabs') || '';
+    const voiceId = localStorage.getItem('orion_voiceid_elevenlabs') || DEFAULT_ELEVEN_VOICE_ID;
+    return { apiKey, voiceId };
+  }
+
+  async function speakElevenLabs(text, onStart, onEnd) {
+    const { apiKey, voiceId } = getElevenLabsConfig();
+
+    const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'xi-api-key': apiKey
+      },
+      body: JSON.stringify({
+        text,
+        model_id: ELEVEN_MODEL,
+        voice_settings: {
+          stability: 0.55,
+          similarity_boost: 0.80,
+          style: 0.35,
+          use_speaker_boost: true,
+          speed: 0.96
+        }
+      })
+    });
+
+    if (!res.ok) {
+      let msg = `ElevenLabs ${res.status}`;
+      try { const e = await res.json(); msg = e?.detail?.message || msg; } catch(_) {}
+      throw new Error(msg);
+    }
+
+    const blob = await res.blob();
+    const url  = URL.createObjectURL(blob);
+
+    if (currentAudioEl) { currentAudioEl.pause(); currentAudioEl = null; }
+    const audio = new Audio(url);
+    currentAudioEl = audio;
+
+    audio.onplay  = () => { startSpeakPulse(); if (onStart) onStart(); };
+    audio.onended = () => { stopSpeakPulse(); URL.revokeObjectURL(url); currentAudioEl = null; if (onEnd) onEnd(); };
+    audio.onerror = () => { stopSpeakPulse(); URL.revokeObjectURL(url); currentAudioEl = null; if (onEnd) onEnd(); };
+
+    await audio.play();
+  }
+
+  /* ═══ Voz nativa do navegador (fallback) ═══ */
+  function speakNative(text, onStart, onEnd) {
     synth.cancel();
     const utt = new SpeechSynthesisUtterance(text);
 
@@ -760,26 +824,41 @@ const VOICE = (() => {
     const voice = cachedVoice;
 
     utt.lang   = voice ? voice.lang : 'pt-BR';
-    /* Rate levemente abaixo do normal e pitch um pouco mais grave
-       para soar mais elegante, calmo e "robótico-sofisticado" — J.A.R.V.I.S */
     utt.rate   = 0.90;
     utt.pitch  = 0.82;
     utt.volume = 1.0;
     if (voice) utt.voice = voice;
 
-    utt.onstart = () => {
-      startSpeakPulse();
-      if (onStart) onStart();
-    };
+    utt.onstart = () => { startSpeakPulse(); if (onStart) onStart(); };
     utt.onend   = () => { stopSpeakPulse(); if (onEnd) onEnd(); };
     utt.onerror = () => { stopSpeakPulse(); if (onEnd) onEnd(); };
 
     synth.speak(utt);
   }
 
-  function stopSpeaking() { synth.cancel(); stopSpeakPulse(); }
+  /* ═══ Ponto de entrada único: tenta ElevenLabs, cai para nativo ═══ */
+  async function speak(text, onStart, onEnd) {
+    const { apiKey } = getElevenLabsConfig();
 
-  function isSpeaking() { return synth.speaking; }
+    if (apiKey) {
+      try {
+        await speakElevenLabs(text, onStart, onEnd);
+        return;
+      } catch (err) {
+        console.warn('ElevenLabs falhou, usando voz nativa como reserva:', err.message);
+        /* segue para o fallback abaixo */
+      }
+    }
+    speakNative(text, onStart, onEnd);
+  }
+
+  function stopSpeaking() {
+    synth.cancel();
+    if (currentAudioEl) { currentAudioEl.pause(); currentAudioEl = null; }
+    stopSpeakPulse();
+  }
+
+  function isSpeaking() { return synth.speaking || (currentAudioEl && !currentAudioEl.paused); }
 
   function startSpeakPulse() {
     speakPulseTimer = setInterval(() => {
@@ -789,7 +868,11 @@ const VOICE = (() => {
 
   function stopSpeakPulse() { clearInterval(speakPulseTimer); }
 
-  return { init, startListening, stopListening, speak, stopSpeaking, isSpeaking, isAvailable: !!SpeechRec };
+  return {
+    init, startListening, stopListening,
+    speak, stopSpeaking, isSpeaking,
+    isAvailable: !!SpeechRec
+  };
 })();
 </script>
 
@@ -804,7 +887,7 @@ const ORION_CORE = (() => {
   /* ─── Personalidade e respostas internas ─── */
   const IDENTITY = {
     name: 'ORION',
-    version: '2.5',
+    version: '3.0',
     creator: 'Arquitetura proprietária',
     mission: 'Auxiliar com inteligência, organização e tecnologia.',
   };
@@ -1067,9 +1150,12 @@ Você tem personalidade própria: preciso, elegante e levemente formal, como uma
   const keyGemini  = document.getElementById('keyGemini');
   const keyClaude  = document.getElementById('keyClaude');
   const keyOpenAI  = document.getElementById('keyOpenAI');
+  const keyEleven  = document.getElementById('keyElevenLabs');
+  const voiceIdEleven = document.getElementById('voiceIdElevenLabs');
   const dotGemini  = document.getElementById('dotGemini');
   const dotClaude  = document.getElementById('dotClaude');
   const dotOpenAI  = document.getElementById('dotOpenAI');
+  const dotEleven  = document.getElementById('dotElevenLabs');
   const saveKeysBtn= document.getElementById('saveKeys');
   const hintPill   = document.getElementById('hintPill');
 
@@ -1091,6 +1177,7 @@ Você tem personalidade própria: preciso, elegante e levemente formal, como uma
     dotGemini.className = 'dot-status ' + (ORION_CORE.KEYS.gemini ? 'dot-ok' : 'dot-off');
     dotClaude.className = 'dot-status ' + (ORION_CORE.KEYS.claude ? 'dot-ok' : 'dot-off');
     dotOpenAI.className = 'dot-status ' + (ORION_CORE.KEYS.openai ? 'dot-ok' : 'dot-off');
+    dotEleven.className = 'dot-status ' + (localStorage.getItem('orion_key_elevenlabs') ? 'dot-ok' : 'dot-off');
   }
 
   /* ─── Fluxo principal ─── */
@@ -1181,6 +1268,8 @@ Você tem personalidade própria: preciso, elegante e levemente formal, como uma
       keyGemini.value = ORION_CORE.KEYS.gemini;
       keyClaude.value = ORION_CORE.KEYS.claude;
       keyOpenAI.value = ORION_CORE.KEYS.openai;
+      keyEleven.value = localStorage.getItem('orion_key_elevenlabs') || '';
+      voiceIdEleven.value = localStorage.getItem('orion_voiceid_elevenlabs') || '';
       updateAPIDots();
     }
   });
@@ -1189,11 +1278,14 @@ Você tem personalidade própria: preciso, elegante e levemente formal, como uma
     ORION_CORE.setKey('gemini', keyGemini.value.trim());
     ORION_CORE.setKey('claude', keyClaude.value.trim());
     ORION_CORE.setKey('openai', keyOpenAI.value.trim());
+    localStorage.setItem('orion_key_elevenlabs', keyEleven.value.trim());
+    localStorage.setItem('orion_voiceid_elevenlabs', voiceIdEleven.value.trim());
     updateAPIDots();
     apiPanel.classList.remove('visible');
     const active = ORION_CORE.getActiveAPI();
-    setState('idle', active ? `${active} conectada.` : 'Sem IA externa. Modo local ativo.');
-    setTimeout(() => setState('idle'), 2500);
+    const voiceMsg = keyEleven.value.trim() ? ' Voz neural ativa.' : '';
+    setState('idle', (active ? `${active} conectada.` : 'Sem IA externa. Modo local ativo.') + voiceMsg);
+    setTimeout(() => setState('idle'), 2800);
   });
 
   /* ─── Click fora para fechar painel ─── */
