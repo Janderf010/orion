@@ -4,492 +4,944 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ORION AI</title>
-<link rel="icon" type="image/png" href="favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500&display=swap" rel="stylesheet">
 <style>
-/* ═══════════════════════════════════════════════════════
-   ORION VISUAL — Global styles & design tokens
-═══════════════════════════════════════════════════════ */
-*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+/* ═══════════════════════════════════════════
+   ORION v3.0 — Design System Tokens
+═══════════════════════════════════════════ */
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 
 :root {
-  --black:       #000000;
-  --blue:        #3a8eff;
-  --cyan:        #00e5ff;
-  --purple:      #a259ff;
-  --green:       #00e676;
-  --red:         #ff3757;
-  --white:       #e8f0ff;
-  --white-dim:   rgba(232,240,255,0.45);
-  --orb-size:    clamp(180px, 36vmin, 300px);
-  --halo-size:   calc(var(--orb-size) * 2.1);
-  --font-ui:     -apple-system,'SF Pro Display','Helvetica Neue',sans-serif;
+  /* Core palette */
+  --void:          #000000;
+  --abyss:         #03030a;
+  --deep:          #060610;
+  --surface:       #0d0d1a;
+  --panel:         #0f0f1e;
+  --panel-border:  rgba(255,255,255,0.06);
+  --panel-hover:   rgba(255,255,255,0.035);
+
+  /* Accent spectrum */
+  --blue:          #3a8eff;
+  --blue-dim:      rgba(58,142,255,0.60);
+  --blue-glow:     rgba(58,142,255,0.18);
+  --cyan:          #00d4ff;
+  --cyan-dim:      rgba(0,212,255,0.55);
+  --cyan-glow:     rgba(0,212,255,0.14);
+  --purple:        #8b5cf6;
+  --purple-dim:    rgba(139,92,246,0.60);
+  --green:         #00e676;
+  --green-dim:     rgba(0,230,118,0.60);
+  --green-glow:    rgba(0,230,118,0.14);
+  --amber:         #f59e0b;
+  --red:           #ff3757;
+
+  /* Typography */
+  --font:          'Inter', -apple-system, 'Helvetica Neue', sans-serif;
+
+  /* Text */
+  --text-1:        rgba(255,255,255,0.92);
+  --text-2:        rgba(255,255,255,0.55);
+  --text-3:        rgba(255,255,255,0.28);
+  --text-4:        rgba(255,255,255,0.14);
+
+  /* Orb sizing */
+  --orb:           clamp(180px, 32vmin, 260px);
+  --halo:          calc(var(--orb) * 2.2);
+
+  /* Layout */
+  --sidebar-w:     280px;
+  --chat-w:        520px;
+  --transition:    0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 body {
-  background: #000000;
-  height: 100dvh; width: 100vw;
+  background: var(--void);
+  width: 100vw; height: 100dvh;
   overflow: hidden;
-  display: flex; justify-content: center; align-items: center;
-  font-family: var(--font-ui);
-  color: var(--white);
+  font-family: var(--font);
+  color: var(--text-1);
   -webkit-font-smoothing: antialiased;
-  touch-action: none;
+  display: flex;
 }
 
-/* ── Ambient deep-space background ── */
-.ambient { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
-
-/* Deep radial gradient base, like floating in space */
-.space-gradient {
-  position: absolute; inset: -10%;
-  background:
-    radial-gradient(ellipse 80% 60% at 50% 20%, rgba(30,42,90,0.55) 0%, transparent 60%),
-    radial-gradient(ellipse 70% 70% at 85% 80%, rgba(50,20,80,0.40) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 60% at 10% 85%, rgba(10,40,60,0.35) 0%, transparent 60%),
-    radial-gradient(circle at 50% 50%, #050511 0%, #020207 55%, #000000 100%);
+/* ─── VOID BACKGROUND — No stars, pure depth ─── */
+.bg {
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
 }
-
-/* Starfield layers (parallax via slow drift) */
-.stars {
+.bg-base {
   position: absolute; inset: 0;
-  background-repeat: repeat;
-  animation: starDrift 180s linear infinite;
-  opacity: 0.8;
+  background:
+    radial-gradient(ellipse 70% 50% at 50% -10%,  rgba(20,35,80,0.50) 0%, transparent 65%),
+    radial-gradient(ellipse 60% 60% at 80%  90%,  rgba(40,15,70,0.35) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 50% at 10%  80%,  rgba(10,30,55,0.30) 0%, transparent 60%),
+    radial-gradient(circle at 50% 50%, #050510 0%, #020209 40%, #000000 100%);
 }
-.stars-1 {
-  background-image:
-    radial-gradient(1px 1px at 10% 20%, #fff 100%, transparent 0),
-    radial-gradient(1px 1px at 35% 65%, #fff 100%, transparent 0),
-    radial-gradient(1px 1px at 60% 15%, #cdd9ff 100%, transparent 0),
-    radial-gradient(1px 1px at 80% 50%, #fff 100%, transparent 0),
-    radial-gradient(1px 1px at 25% 85%, #fff 100%, transparent 0),
-    radial-gradient(1px 1px at 92% 30%, #cdd9ff 100%, transparent 0),
-    radial-gradient(1px 1px at 48% 40%, #fff 100%, transparent 0),
-    radial-gradient(1px 1px at 70% 90%, #fff 100%, transparent 0);
-  background-size: 420px 420px;
-  opacity: 0.55;
+/* Very subtle deep glow — no stars, just atmosphere */
+.bg-nebula {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 40% 30% at 72% 28%, rgba(58,142,255,0.04) 0%, transparent 55%),
+    radial-gradient(ellipse 35% 25% at 22% 68%, rgba(139,92,246,0.04) 0%, transparent 55%);
 }
-.stars-2 {
-  background-image:
-    radial-gradient(1.4px 1.4px at 15% 50%, #fff 100%, transparent 0),
-    radial-gradient(1.4px 1.4px at 45% 12%, #aecbff 100%, transparent 0),
-    radial-gradient(1.4px 1.4px at 65% 75%, #fff 100%, transparent 0),
-    radial-gradient(1.4px 1.4px at 88% 22%, #fff 100%, transparent 0),
-    radial-gradient(1.4px 1.4px at 30% 30%, #fff 100%, transparent 0),
-    radial-gradient(1.4px 1.4px at 78% 65%, #aecbff 100%, transparent 0);
-  background-size: 620px 620px;
-  animation-duration: 280s;
-  animation-direction: reverse;
-  opacity: 0.40;
-}
-.stars-3 {
-  background-image:
-    radial-gradient(2px 2px at 22% 22%, #fff 100%, transparent 0),
-    radial-gradient(2px 2px at 58% 58%, #fff 100%, transparent 0),
-    radial-gradient(2px 2px at 82% 12%, #fff 100%, transparent 0),
-    radial-gradient(2px 2px at 12% 75%, #fff 100%, transparent 0);
-  background-size: 900px 900px;
-  animation-duration: 360s;
-  opacity: 0.25;
-  box-shadow: none;
-}
-@keyframes starDrift {
-  from { transform: translate(0,0); }
-  to   { transform: translate(-200px,-120px); }
+/* Subtle chromatic halo around center */
+.bg-halo {
+  position: absolute;
+  width: 700px; height: 700px;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -55%);
+  background: radial-gradient(circle, rgba(58,142,255,0.05) 0%, rgba(139,92,246,0.03) 35%, transparent 70%);
+  border-radius: 50%;
+  filter: blur(40px);
+  pointer-events: none;
 }
 
-.ambient-blob {
-  position: absolute; border-radius: 50%; filter: blur(120px); opacity: 0.07;
-  animation: blobDrift 22s ease-in-out infinite alternate;
+/* ═══════════════════════════════════════════
+   BOOT SCREEN
+═══════════════════════════════════════════ */
+#bootScreen {
+  position: fixed; inset: 0; z-index: 100;
+  background: #000000;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 0;
+  transition: opacity 0.8s ease;
 }
-.blob-1 { width:60vw; height:60vw; background:var(--blue);   top:-20%; left:-15%; animation-delay:0s; }
-.blob-2 { width:45vw; height:45vw; background:var(--purple); bottom:-15%; right:-10%; animation-delay:-8s; }
-.blob-3 { width:32vw; height:32vw; background:var(--cyan);   top:38%; left:52%; animation-delay:-15s; }
-@keyframes blobDrift {
-  from { transform: translate(0,0) scale(1); }
-  to   { transform: translate(5%,8%) scale(1.10); }
+#bootScreen.fade-out { opacity: 0; pointer-events: none; }
+
+.boot-logo {
+  font-size: 11px; font-weight: 200;
+  letter-spacing: 0.60em; text-transform: uppercase;
+  color: rgba(255,255,255,0.15);
+  margin-bottom: 52px;
 }
 
-/* ── Scene layout ── */
-.scene {
-  position: relative; z-index: 1;
-  display: flex; flex-direction: column; align-items: center;
-  gap: 36px; user-select: none;
-}
-
-/* ── Orb wrapper ── */
-.orb-scene {
+.boot-orb-wrap {
   position: relative;
-  width: var(--halo-size); height: var(--halo-size);
-  display: flex; justify-content: center; align-items: center;
-  cursor: pointer; outline: none;
+  width: 120px; height: 120px;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 48px;
+}
+.boot-orb {
+  width: 72px; height: 72px; border-radius: 50%;
+  background: radial-gradient(circle at 36% 32%, rgba(255,255,255,0.15) 0%, rgba(60,100,255,0.08) 35%, rgba(5,5,20,0.88) 80%);
+  border: 1px solid rgba(255,255,255,0.10);
+  box-shadow:
+    0 0 40px rgba(58,142,255,0.22),
+    0 0 80px rgba(139,92,246,0.12),
+    inset 0 0 30px rgba(0,0,0,0.60);
+  animation: bootPulse 2.2s ease-in-out infinite;
+}
+.boot-ring {
+  position: absolute; border-radius: 50%;
+  border: 1px solid transparent;
+  background: conic-gradient(from 0deg, transparent 0%, rgba(58,142,255,0.30) 30%, rgba(139,92,246,0.25) 65%, transparent 85%) border-box;
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 1px), #fff calc(100% - 1px));
+  mask:          radial-gradient(farthest-side, transparent calc(100% - 1px), #fff calc(100% - 1px));
+  animation: bootSpin linear infinite;
+}
+.boot-ring-1 { width: 100px; height: 100px; animation-duration: 4s; }
+.boot-ring-2 { width: 118px; height: 118px; animation-duration: 7s; animation-direction: reverse; opacity: 0.5; }
+@keyframes bootPulse { 0%,100%{opacity:0.7;transform:scale(1)} 50%{opacity:1;transform:scale(1.06)} }
+@keyframes bootSpin  { from{transform:rotate(0)} to{transform:rotate(360deg)} }
+
+.boot-lines {
+  display: flex; flex-direction: column; gap: 8px;
+  align-items: center;
+}
+.boot-line {
+  font-size: 11px; font-weight: 300; letter-spacing: 0.20em;
+  text-transform: uppercase; color: var(--text-3);
+  opacity: 0; transform: translateY(4px);
+  transition: opacity 0.5s ease, transform 0.5s ease, color 0.4s ease;
+}
+.boot-line.active { opacity: 1; transform: translateY(0); color: var(--text-2); }
+.boot-line.done   { color: rgba(0,230,118,0.55); }
+
+.boot-bar-wrap {
+  width: 200px; height: 1px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 1px; margin-top: 32px; overflow: hidden;
+}
+.boot-bar {
+  height: 100%; width: 0%;
+  background: linear-gradient(90deg, var(--blue), var(--cyan));
+  border-radius: 1px;
+  transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
 }
 
-/* ── Halo rings ── */
+/* ═══════════════════════════════════════════
+   LAYOUT SHELL
+═══════════════════════════════════════════ */
+#app {
+  display: flex; width: 100%; height: 100%;
+  position: relative; z-index: 1;
+  opacity: 0; transition: opacity 0.8s ease;
+}
+#app.visible { opacity: 1; }
+
+/* ═══════════════════════════════════════════
+   LEFT SIDEBAR
+═══════════════════════════════════════════ */
+#sidebar {
+  width: var(--sidebar-w);
+  height: 100%;
+  background: rgba(9,9,20,0.90);
+  border-right: 1px solid var(--panel-border);
+  display: flex; flex-direction: column;
+  padding: 0;
+  flex-shrink: 0;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  transform: translateX(-100%);
+  transition: transform 0.5s cubic-bezier(0.4,0,0.2,1);
+  position: relative; z-index: 10;
+}
+#sidebar.open { transform: translateX(0); }
+
+.sidebar-header {
+  padding: 28px 20px 20px;
+  border-bottom: 1px solid var(--panel-border);
+}
+.sidebar-logo {
+  font-size: 10px; font-weight: 200; letter-spacing: 0.50em;
+  text-transform: uppercase; color: var(--text-3);
+  margin-bottom: 16px;
+}
+.sidebar-status-row {
+  display: flex; flex-direction: column; gap: 6px;
+}
+.status-item {
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 10px; letter-spacing: 0.08em;
+}
+.status-label { color: var(--text-3); font-weight: 300; }
+.status-val {
+  display: flex; align-items: center; gap: 5px;
+  font-weight: 400; color: var(--text-2);
+}
+.dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  flex-shrink: 0;
+}
+.dot-on  { background: var(--green); box-shadow: 0 0 5px rgba(0,230,118,0.70); }
+.dot-idle{ background: rgba(255,255,255,0.25); }
+.dot-dev { background: var(--amber); box-shadow: 0 0 5px rgba(245,158,11,0.60); }
+
+/* ── Modes section ── */
+.sidebar-section {
+  padding: 16px 20px 8px;
+}
+.sidebar-section-title {
+  font-size: 9px; font-weight: 300; letter-spacing: 0.35em;
+  text-transform: uppercase; color: var(--text-4);
+  margin-bottom: 10px;
+}
+
+.mode-btn {
+  display: flex; align-items: center; gap: 10px;
+  width: 100%; padding: 9px 12px;
+  border-radius: 8px; border: none; cursor: pointer;
+  background: transparent;
+  transition: background 0.2s ease;
+  text-align: left; position: relative;
+}
+.mode-btn:hover { background: var(--panel-hover); }
+.mode-btn.active {
+  background: rgba(58,142,255,0.08);
+  border: none;
+}
+.mode-btn.active::before {
+  content: '';
+  position: absolute; left: 0; top: 50%;
+  transform: translateY(-50%);
+  width: 2px; height: 16px;
+  background: var(--blue);
+  border-radius: 0 2px 2px 0;
+}
+.mode-icon {
+  font-size: 14px; width: 22px; text-align: center;
+  flex-shrink: 0;
+}
+.mode-text { flex: 1; }
+.mode-name {
+  font-size: 11px; font-weight: 400; color: var(--text-1);
+  letter-spacing: 0.02em; margin-bottom: 1px;
+}
+.mode-sub {
+  font-size: 10px; font-weight: 300; color: var(--text-3);
+  letter-spacing: 0.03em;
+}
+.mode-btn.active .mode-name { color: var(--blue); }
+
+/* ── Systems panel ── */
+.sys-panel {
+  padding: 16px 20px;
+  border-top: 1px solid var(--panel-border);
+  flex: 1; display: flex; flex-direction: column; gap: 4px;
+}
+.sys-title {
+  font-size: 9px; font-weight: 300; letter-spacing: 0.35em;
+  text-transform: uppercase; color: var(--text-4); margin-bottom: 8px;
+}
+.sys-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 5px 2px; font-size: 10px; font-weight: 300; letter-spacing: 0.06em;
+}
+.sys-item .dot { flex-shrink: 0; }
+.sys-name { color: var(--text-2); }
+.sys-badge {
+  margin-left: auto; font-size: 9px; letter-spacing: 0.08em;
+  padding: 2px 6px; border-radius: 4px;
+  background: rgba(255,255,255,0.04); color: var(--text-3);
+}
+.sys-badge.em-dev {
+  background: rgba(245,158,11,0.10); color: rgba(245,158,11,0.50);
+}
+.sys-separator {
+  height: 1px; background: var(--panel-border);
+  margin: 8px 0;
+}
+
+/* ── Settings row at bottom ── */
+.sidebar-footer {
+  padding: 14px 20px;
+  border-top: 1px solid var(--panel-border);
+  display: flex; align-items: center; gap: 10px;
+}
+.sidebar-footer-label {
+  font-size: 10px; font-weight: 300; letter-spacing: 0.10em; color: var(--text-3);
+  flex: 1;
+}
+.icon-btn {
+  width: 28px; height: 28px; border-radius: 7px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.07);
+  color: var(--text-3); font-size: 13px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s ease;
+}
+.icon-btn:hover { background: rgba(255,255,255,0.08); color: var(--text-2); border-color: rgba(255,255,255,0.12); }
+
+/* ═══════════════════════════════════════════
+   MAIN STAGE
+═══════════════════════════════════════════ */
+#stage {
+  flex: 1; height: 100%;
+  display: flex; flex-direction: column;
+  align-items: center;
+  position: relative; overflow: hidden;
+}
+
+/* ── Top bar ── */
+.topbar {
+  position: absolute; top: 0; left: 0; right: 0;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 24px;
+  z-index: 5;
+}
+.topbar-left {
+  display: flex; align-items: center; gap: 10px;
+}
+.menu-btn {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.06);
+  color: var(--text-3); font-size: 15px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s ease;
+}
+.menu-btn:hover { background: rgba(255,255,255,0.07); color: var(--text-2); }
+.topbar-brand {
+  font-size: 11px; font-weight: 200; letter-spacing: 0.45em;
+  text-transform: uppercase; color: var(--text-3);
+}
+.topbar-right {
+  display: flex; align-items: center; gap: 8px;
+}
+.mode-pill {
+  padding: 5px 12px; border-radius: 20px;
+  font-size: 10px; font-weight: 300; letter-spacing: 0.16em;
+  text-transform: uppercase;
+  background: rgba(58,142,255,0.08);
+  border: 1px solid rgba(58,142,255,0.18);
+  color: rgba(58,142,255,0.70);
+  cursor: pointer; transition: all 0.2s ease;
+}
+.mode-pill:hover { background: rgba(58,142,255,0.14); color: var(--blue); }
+
+/* ── Orb stage center ── */
+.orb-center {
+  flex: 1; display: flex;
+  flex-direction: column; align-items: center; justify-content: center;
+  gap: 40px;
+}
+
+/* ── Orbital halo system ── */
+.orb-stage {
+  position: relative;
+  width: var(--halo); height: var(--halo);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+}
 .halo-ring {
   position: absolute; border-radius: 50%;
   border: 1px solid transparent;
   animation: haloSpin linear infinite;
   pointer-events: none;
-  transition: opacity 0.6s ease;
 }
-.halo-ring-1 {
-  width: var(--halo-size); height: var(--halo-size);
+.halo-1 {
+  width: var(--halo); height: var(--halo);
   background: conic-gradient(from 0deg,
-    transparent 0%, rgba(58,142,255,0.20) 20%,
-    rgba(162,89,255,0.25) 45%, rgba(0,229,255,0.20) 65%,
-    transparent 85%) border-box;
+    transparent 0%, rgba(58,142,255,0.18) 20%,
+    rgba(139,92,246,0.22) 50%, rgba(0,212,255,0.16) 70%,
+    transparent 88%) border-box;
   -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 1px), #fff calc(100% - 1px));
-  mask: radial-gradient(farthest-side, transparent calc(100% - 1px), #fff calc(100% - 1px));
-  animation-duration: 7s;
+  mask:          radial-gradient(farthest-side, transparent calc(100% - 1px), #fff calc(100% - 1px));
+  animation-duration: 9s;
 }
-.halo-ring-2 {
-  width: calc(var(--halo-size) * 0.88); height: calc(var(--halo-size) * 0.88);
+.halo-2 {
+  width: calc(var(--halo) * 0.87); height: calc(var(--halo) * 0.87);
   background: conic-gradient(from 180deg,
-    transparent 0%, rgba(0,229,255,0.12) 30%,
-    rgba(58,142,255,0.15) 60%, transparent 80%) border-box;
+    transparent 0%, rgba(0,212,255,0.10) 30%,
+    rgba(58,142,255,0.14) 65%, transparent 82%) border-box;
   -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 1px), #fff calc(100% - 1px));
-  mask: radial-gradient(farthest-side, transparent calc(100% - 1px), #fff calc(100% - 1px));
-  animation-duration: 11s; animation-direction: reverse; opacity: 0.6;
+  mask:          radial-gradient(farthest-side, transparent calc(100% - 1px), #fff calc(100% - 1px));
+  animation-duration: 14s; animation-direction: reverse; opacity: 0.55;
 }
-.halo-ring-3 {
-  width: calc(var(--halo-size) * 0.76); height: calc(var(--halo-size) * 0.76);
+.halo-3 {
+  width: calc(var(--halo) * 0.74); height: calc(var(--halo) * 0.74);
   background: conic-gradient(from 90deg,
-    transparent 0%, rgba(162,89,255,0.10) 40%,
-    rgba(0,229,255,0.08) 70%, transparent 90%) border-box;
+    transparent 0%, rgba(139,92,246,0.08) 40%,
+    rgba(0,212,255,0.07) 72%, transparent 90%) border-box;
   -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 1px), #fff calc(100% - 1px));
-  mask: radial-gradient(farthest-side, transparent calc(100% - 1px), #fff calc(100% - 1px));
-  animation-duration: 15s; opacity: 0.4;
+  mask:          radial-gradient(farthest-side, transparent calc(100% - 1px), #fff calc(100% - 1px));
+  animation-duration: 20s; opacity: 0.38;
 }
-@keyframes haloSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes haloSpin { from{transform:rotate(0)} to{transform:rotate(360deg)} }
 
-/* ── Halo state overrides ── */
-.orb-scene.state-listening .halo-ring-1 {
-  background: conic-gradient(from 0deg,
-    transparent 0%, rgba(0,180,255,0.55) 25%,
-    rgba(58,142,255,0.65) 55%, rgba(0,229,255,0.50) 75%,
-    transparent 90%) border-box;
+/* State-based halo intensification */
+.orb-stage.s-listening .halo-1 {
+  background: conic-gradient(from 0deg, transparent 0%, rgba(0,212,255,0.50) 25%, rgba(58,142,255,0.60) 55%, rgba(0,212,255,0.45) 78%, transparent 92%) border-box;
 }
-.orb-scene.state-listening .halo-ring-2 { opacity: 1; }
-.orb-scene.state-listening .halo-ring-3 { opacity: 0.8; }
+.orb-stage.s-listening .halo-2,.orb-stage.s-listening .halo-3 { opacity: 1; }
+.orb-stage.s-thinking .halo-1 {
+  background: conic-gradient(from 0deg, transparent 0%, rgba(139,92,246,0.55) 25%, rgba(100,60,255,0.65) 55%, rgba(200,80,255,0.48) 78%, transparent 92%) border-box;
+  animation-duration: 4s;
+}
+.orb-stage.s-speaking .halo-1 {
+  background: conic-gradient(from 0deg, transparent 0%, rgba(0,230,118,0.50) 25%, rgba(0,255,140,0.62) 55%, rgba(0,200,100,0.46) 78%, transparent 92%) border-box;
+}
+.orb-stage.s-error .halo-1 {
+  background: conic-gradient(from 0deg, transparent 0%, rgba(255,55,75,0.55) 25%, rgba(255,80,90,0.65) 55%, rgba(220,30,50,0.48) 78%, transparent 92%) border-box;
+}
 
-.orb-scene.state-speaking .halo-ring-1 {
-  background: conic-gradient(from 0deg,
-    transparent 0%, rgba(0,230,120,0.55) 25%,
-    rgba(0,255,140,0.65) 55%, rgba(0,200,100,0.50) 75%,
-    transparent 90%) border-box;
+/* ── Particle field around orb ── */
+.particles {
+  position: absolute;
+  width: calc(var(--halo) * 0.85); height: calc(var(--halo) * 0.85);
+  border-radius: 50%; pointer-events: none;
 }
-.orb-scene.state-speaking .halo-ring-2 { opacity: 1; }
-.orb-scene.state-speaking .halo-ring-3 { opacity: 0.8; }
-
-.orb-scene.state-thinking .halo-ring-1 {
-  background: conic-gradient(from 0deg,
-    transparent 0%, rgba(162,89,255,0.55) 25%,
-    rgba(100,60,255,0.65) 55%, rgba(200,80,255,0.50) 75%,
-    transparent 90%) border-box;
+.particle {
+  position: absolute; width: 2px; height: 2px;
+  border-radius: 50%; background: var(--blue);
+  opacity: 0; animation: particleDrift linear infinite;
 }
-.orb-scene.state-error .halo-ring-1 {
-  background: conic-gradient(from 0deg,
-    transparent 0%, rgba(255,55,75,0.55) 25%,
-    rgba(255,80,90,0.65) 55%, rgba(220,30,50,0.50) 75%,
-    transparent 90%) border-box;
+@keyframes particleDrift {
+  0%   { opacity: 0; transform: translate(0,0) scale(0.5); }
+  20%  { opacity: 0.8; }
+  80%  { opacity: 0.4; }
+  100% { opacity: 0; transform: translate(var(--dx,20px),var(--dy,-30px)) scale(1.5); }
 }
 
 /* ── Orb core ── */
 .orb {
   position: relative;
-  width: var(--orb-size); height: var(--orb-size);
-  border-radius: 50%; cursor: pointer; overflow: hidden;
-  background: radial-gradient(
-    circle at 35% 30%,
-    rgba(255,255,255,0.18) 0%,
-    rgba(100,160,255,0.10) 28%,
-    rgba(60,90,200,0.07) 55%,
-    rgba(5,5,22,0.70) 100%
-  );
-  border: 1px solid rgba(255,255,255,0.12);
+  width: var(--orb); height: var(--orb); border-radius: 50%;
+  overflow: hidden; cursor: pointer;
+  background: radial-gradient(circle at 34% 29%,
+    rgba(255,255,255,0.16) 0%,
+    rgba(90,150,255,0.09) 26%,
+    rgba(50,80,180,0.06) 52%,
+    rgba(3,3,16,0.72) 100%);
+  border: 1px solid rgba(255,255,255,0.10);
   box-shadow:
-    0 0 50px  rgba(58,142,255,0.28),
-    0 0 100px rgba(162,89,255,0.16),
-    0 0 180px rgba(0,229,255,0.10),
-    inset 0 0 70px rgba(0,0,0,0.55),
-    inset 0 1px 0 rgba(255,255,255,0.16);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  animation: orbFloat 7s ease-in-out infinite, breathe 4s ease-in-out infinite;
+    0 0 55px  rgba(58,142,255,0.24),
+    0 0 110px rgba(139,92,246,0.14),
+    0 0 200px rgba(0,212,255,0.08),
+    inset 0 0 60px rgba(0,0,0,0.60),
+    inset 0 1px 0  rgba(255,255,255,0.14);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  animation: orbFloat 8s ease-in-out infinite, breathe 4.5s ease-in-out infinite;
   transition: box-shadow 0.5s ease;
   will-change: transform;
 }
-.orb-scene:hover .orb { filter: brightness(1.08); }
-.orb.pressed { transform: scale(1.12) !important; transition: transform 0.15s ease; }
+.orb:hover { filter: brightness(1.07); }
+.orb.pressed { transform: scale(1.08) !important; transition: transform 0.12s ease; }
 
-.orb.listening {
-  box-shadow:
-    0 0 70px rgba(0,229,255,0.45),
-    0 0 140px rgba(0,180,255,0.25),
-    inset 0 0 60px rgba(0,0,0,0.40),
-    inset 0 1px 0 rgba(255,255,255,0.24);
-  animation: orbFloat 7s ease-in-out infinite, breathe 4s ease-in-out infinite, listenPulse 1.1s ease-in-out infinite;
+/* State visual overrides */
+.orb.s-listening {
+  box-shadow: 0 0 70px rgba(0,212,255,0.44), 0 0 140px rgba(0,180,255,0.22), inset 0 0 55px rgba(0,0,0,0.44), inset 0 1px 0 rgba(255,255,255,0.20);
+  animation: orbFloat 8s ease-in-out infinite, breathe 4.5s ease-in-out infinite, listenPulse 1.1s ease-in-out infinite;
 }
-.orb.thinking {
-  box-shadow:
-    0 0 60px rgba(162,89,255,0.40),
-    0 0 120px rgba(58,142,255,0.25),
-    inset 0 0 60px rgba(0,0,0,0.45),
-    inset 0 1px 0 rgba(255,255,255,0.20);
-  animation: orbFloat 7s ease-in-out infinite, breathe 4s ease-in-out infinite;
+.orb.s-thinking {
+  box-shadow: 0 0 65px rgba(139,92,246,0.42), 0 0 130px rgba(58,142,255,0.22), inset 0 0 55px rgba(0,0,0,0.48), inset 0 1px 0 rgba(255,255,255,0.18);
 }
-.orb.speaking {
-  box-shadow:
-    0 0 80px rgba(0,230,120,0.50),
-    0 0 160px rgba(0,200,100,0.28),
-    inset 0 0 55px rgba(0,0,0,0.38),
-    inset 0 1px 0 rgba(255,255,255,0.28);
-  animation: orbSwing 0.55s ease-in-out infinite, breatheSpeaking 0.35s ease-in-out infinite;
+.orb.s-speaking {
+  box-shadow: 0 0 80px rgba(0,230,118,0.48), 0 0 160px rgba(0,200,100,0.24), inset 0 0 50px rgba(0,0,0,0.40), inset 0 1px 0 rgba(255,255,255,0.26);
+  animation: orbSwing 0.55s ease-in-out infinite, breatheSpeaking 0.32s ease-in-out infinite;
 }
-.orb.error {
-  box-shadow:
-    0 0 70px rgba(255,55,75,0.50),
-    0 0 140px rgba(255,55,75,0.22),
-    inset 0 0 60px rgba(0,0,0,0.52),
-    inset 0 1px 0 rgba(255,255,255,0.10);
-  animation: orbFloat 7s ease-in-out infinite, breathe 4s ease-in-out infinite, errorShake 0.45s ease;
+.orb.s-error {
+  box-shadow: 0 0 70px rgba(255,55,75,0.48), 0 0 140px rgba(255,55,75,0.20), inset 0 0 55px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.08);
+  animation: orbFloat 8s ease-in-out infinite, breathe 4.5s ease-in-out infinite, errorShake 0.42s ease;
 }
 
-@keyframes breathe         { 0%,100%{transform:scale(1)} 50%{transform:scale(1.045)} }
-@keyframes breatheSpeaking { 0%,100%{transform:scale(1)} 50%{transform:scale(1.038)} }
-@keyframes orbFloat        { 0%,100%{margin-top:0}  25%{margin-top:-16px} 75%{margin-top:16px} }
-@keyframes orbSwing        { 0%{transform:rotate(-2.5deg) scale(1)} 25%{transform:rotate(0) scale(1.03)} 50%{transform:rotate(2.5deg) scale(1)} 75%{transform:rotate(0) scale(1.03)} 100%{transform:rotate(-2.5deg) scale(1)} }
-@keyframes listenPulse     { 0%,100%{opacity:1} 50%{opacity:0.78} }
-@keyframes errorShake      { 0%{transform:translateX(0)} 20%{transform:translateX(-7px)} 40%{transform:translateX(7px)} 60%{transform:translateX(-4px)} 80%{transform:translateX(4px)} 100%{transform:translateX(0)} }
+@keyframes breathe          { 0%,100%{transform:scale(1)} 50%{transform:scale(1.04)} }
+@keyframes breatheSpeaking  { 0%,100%{transform:scale(1)} 50%{transform:scale(1.035)} }
+@keyframes orbFloat         { 0%,100%{margin-top:0} 25%{margin-top:-14px} 75%{margin-top:14px} }
+@keyframes orbSwing         { 0%{transform:rotate(-2.2deg) scale(1)} 25%{transform:rotate(0) scale(1.028)} 50%{transform:rotate(2.2deg) scale(1)} 75%{transform:rotate(0) scale(1.028)} 100%{transform:rotate(-2.2deg) scale(1)} }
+@keyframes listenPulse      { 0%,100%{opacity:1} 50%{opacity:0.78} }
+@keyframes errorShake       { 0%{transform:translateX(0)} 20%{transform:translateX(-6px)} 40%{transform:translateX(6px)} 60%{transform:translateX(-3px)} 80%{transform:translateX(3px)} 100%{transform:translateX(0)} }
 
-/* ── Canvas & glass ── */
+/* ── Canvas (aurora) ── */
 .orb-canvas {
-  position: absolute; inset: 0;
-  width: 100%; height: 100%;
-  border-radius: 50%; opacity: 0.92; mix-blend-mode: screen;
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  border-radius: 50%; opacity: 0.90; mix-blend-mode: screen;
 }
-.glass-highlight {
-  position: absolute; top:7%; left:9%;
-  width:44%; height:38%; border-radius:50%;
-  background: radial-gradient(ellipse at 38% 32%, rgba(255,255,255,0.36) 0%, rgba(200,230,255,0.12) 45%, transparent 72%);
-  pointer-events: none; transform: rotate(-22deg); z-index:2;
-}
-.glass-rim {
-  position: absolute; bottom:5%; right:7%;
-  width:30%; height:16%; border-radius:50%;
-  background: radial-gradient(ellipse, rgba(160,210,255,0.16) 0%, transparent 68%);
-  pointer-events: none; z-index:2;
-}
-.glass-side {
-  position: absolute; top:32%; left:3%;
-  width:10%; height:28%; border-radius:50%;
-  background: radial-gradient(ellipse, rgba(255,255,255,0.10) 0%, transparent 70%);
-  pointer-events: none; z-index:2;
-}
+/* Glass highlights */
+.glass-hi   { position:absolute; top:7%; left:9%; width:44%; height:38%; border-radius:50%; background:radial-gradient(ellipse at 38% 32%,rgba(255,255,255,0.32) 0%,rgba(200,230,255,0.10) 48%,transparent 74%); pointer-events:none; transform:rotate(-22deg); z-index:2; }
+.glass-rim  { position:absolute; bottom:5%; right:7%; width:28%; height:14%; border-radius:50%; background:radial-gradient(ellipse,rgba(160,210,255,0.14) 0%,transparent 70%); pointer-events:none; z-index:2; }
+.glass-side { position:absolute; top:34%; left:3%; width:8%; height:26%; border-radius:50%; background:radial-gradient(ellipse,rgba(255,255,255,0.08) 0%,transparent 72%); pointer-events:none; z-index:2; }
 
-/* ── Status label ── */
-.status {
-  font-size: clamp(10px, 1.6vw, 13px);
-  font-weight: 300; letter-spacing: 0.28em;
-  text-transform: uppercase; color: var(--white-dim);
-  text-align: center; line-height: 1.5;
+/* ── Status line ── */
+.status-line {
+  text-align: center;
+}
+.status-text {
+  font-size: 11px; font-weight: 300; letter-spacing: 0.28em;
+  text-transform: uppercase; color: var(--text-3);
   transition: color 0.4s ease, opacity 0.4s ease;
-  pointer-events: none; min-height: 20px;
+  min-height: 18px; display: block;
 }
-
-/* ── ORION name ── */
-.orion-name {
-  position: fixed; top: 32px; left: 50%; transform: translateX(-50%);
-  font-size: clamp(11px, 1.5vw, 13px); font-weight: 200;
-  letter-spacing: 0.55em; text-transform: uppercase;
-  color: rgba(232,240,255,0.20); pointer-events: none; z-index: 2;
-}
-
-/* ── Version badge (bottom-left) ── */
-.version-badge {
-  position: fixed; bottom: 22px; left: 22px;
-  font-size: 10px; font-weight: 300; letter-spacing: 0.18em;
-  text-transform: uppercase; color: rgba(232,240,255,0.20);
-  pointer-events: none; z-index: 10;
-}
-
-/* ── Settings button ── */
-.key-btn {
-  position: fixed; bottom: 22px; right: 22px;
-  width: 34px; height: 34px; border-radius: 50%;
-  border: 1px solid rgba(255,255,255,0.08);
-  background: rgba(255,255,255,0.04);
-  color: rgba(255,255,255,0.22); font-size: 15px;
-  cursor: pointer; transition: all 0.2s ease;
-  backdrop-filter: blur(8px); z-index: 10;
-}
-.key-btn:hover {
-  background: rgba(255,255,255,0.09);
-  color: rgba(255,255,255,0.60);
-  border-color: rgba(255,255,255,0.18);
-}
-
-/* ── API panel ── */
-.api-panel {
-  position: fixed; bottom: 70px; right: 22px;
-  width: 280px;
-  max-height: 80vh;
-  overflow-y: auto;
-  background: rgba(10,10,24,0.92);
-  border: 1px solid rgba(255,255,255,0.10);
-  border-radius: 16px; backdrop-filter: blur(24px);
-  padding: 18px 20px; z-index: 20;
-  transform: translateY(8px); opacity: 0; pointer-events: none;
-  transition: opacity 0.25s ease, transform 0.25s ease;
-}
-.api-panel.visible { opacity: 1; pointer-events: auto; transform: translateY(0); }
-.api-panel h4 {
-  font-size: 10px; font-weight: 300; letter-spacing: 0.3em;
-  text-transform: uppercase; color: rgba(232,240,255,0.30);
-  margin-bottom: 14px;
-}
-.api-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
-.api-row label { font-size: 11px; color: rgba(232,240,255,0.40); width: 60px; flex-shrink: 0; }
-.api-row input {
-  flex: 1; background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.10); border-radius: 8px;
-  color: rgba(232,240,255,0.70); font-size: 11px;
-  padding: 5px 10px; outline: none;
-  transition: border-color 0.2s ease;
-}
-.api-row input:focus { border-color: rgba(0,229,255,0.40); }
-.api-row .dot-status { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
-.dot-ok  { background: var(--green); box-shadow: 0 0 6px rgba(0,230,120,0.6); }
-.dot-off { background: rgba(255,255,255,0.15); }
-.api-save {
-  width: 100%; margin-top: 4px;
-  background: rgba(58,142,255,0.12); border: 1px solid rgba(58,142,255,0.30);
-  color: rgba(58,142,255,0.80); border-radius: 8px;
-  font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
-  cursor: pointer; padding: 7px 0; transition: all 0.2s ease;
-}
-.api-save:hover { background: rgba(58,142,255,0.22); color: rgba(58,142,255,1); }
-
-/* ── Hint pill (one-liner at bottom) ── */
-.hint-pill {
-  position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%);
-  font-size: 10px; font-weight: 300; letter-spacing: 0.22em;
-  text-transform: uppercase; color: rgba(232,240,255,0.15);
-  pointer-events: none; z-index: 3;
+.status-sub {
+  font-size: 10px; font-weight: 300; letter-spacing: 0.16em;
+  color: var(--text-4); margin-top: 6px; display: block;
   transition: opacity 0.4s ease;
 }
+.hint-line {
+  font-size: 10px; font-weight: 200; letter-spacing: 0.22em;
+  text-transform: uppercase; color: var(--text-4);
+  margin-top: 4px; display: block;
+  transition: opacity 0.5s ease;
+}
 
-@media (max-width: 480px) { .scene { gap: 22px; } }
-@media (prefers-reduced-motion: reduce) {
-  .orb, .halo-ring, .ambient-blob, .stars { animation: none !important; }
+/* ═══════════════════════════════════════════
+   CHAT PANEL (right)
+═══════════════════════════════════════════ */
+#chatPanel {
+  width: 320px; height: 100%;
+  background: rgba(7,7,18,0.88);
+  border-left: 1px solid var(--panel-border);
+  display: flex; flex-direction: column;
+  flex-shrink: 0;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  transform: translateX(100%);
+  transition: transform 0.5s cubic-bezier(0.4,0,0.2,1);
+  position: relative; z-index: 10;
+}
+#chatPanel.open { transform: translateX(0); }
+
+.chat-header {
+  padding: 22px 18px 14px;
+  border-bottom: 1px solid var(--panel-border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.chat-title {
+  font-size: 10px; font-weight: 200; letter-spacing: 0.38em;
+  text-transform: uppercase; color: var(--text-3);
+}
+.chat-count {
+  font-size: 10px; color: var(--text-4); letter-spacing: 0.10em;
+}
+
+#chatMessages {
+  flex: 1; overflow-y: auto; padding: 14px 14px;
+  display: flex; flex-direction: column; gap: 10px;
+}
+#chatMessages::-webkit-scrollbar { width: 2px; }
+#chatMessages::-webkit-scrollbar-track { background: transparent; }
+#chatMessages::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 2px; }
+
+.msg {
+  max-width: 90%;
+  padding: 9px 13px; border-radius: 12px;
+  font-size: 12px; font-weight: 300; line-height: 1.6;
+  letter-spacing: 0.02em;
+}
+.msg-user {
+  align-self: flex-end;
+  background: rgba(58,142,255,0.12);
+  border: 1px solid rgba(58,142,255,0.18);
+  color: rgba(255,255,255,0.80);
+  border-bottom-right-radius: 3px;
+}
+.msg-orion {
+  align-self: flex-start;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  color: var(--text-2);
+  border-bottom-left-radius: 3px;
+}
+.msg-label {
+  font-size: 9px; letter-spacing: 0.20em; text-transform: uppercase;
+  margin-bottom: 3px; font-weight: 300;
+}
+.msg-user .msg-label  { color: rgba(58,142,255,0.55); text-align: right; }
+.msg-orion .msg-label { color: var(--text-4); }
+
+.chat-input-row {
+  padding: 12px 14px;
+  border-top: 1px solid var(--panel-border);
+  display: flex; align-items: center; gap: 8px;
+}
+#chatInput {
+  flex: 1; background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08); border-radius: 8px;
+  color: var(--text-1); font-size: 12px; font-family: var(--font);
+  font-weight: 300; letter-spacing: 0.03em;
+  padding: 8px 12px; outline: none; resize: none; height: 36px;
+  transition: border-color 0.2s ease;
+}
+#chatInput:focus { border-color: rgba(58,142,255,0.35); }
+#chatInput::placeholder { color: var(--text-4); }
+.send-btn {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: rgba(58,142,255,0.12);
+  border: 1px solid rgba(58,142,255,0.22);
+  color: rgba(58,142,255,0.70); font-size: 14px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s ease;
+}
+.send-btn:hover { background: rgba(58,142,255,0.22); color: var(--blue); }
+
+/* ═══════════════════════════════════════════
+   API SETTINGS PANEL (floating)
+═══════════════════════════════════════════ */
+#settingsPanel {
+  position: fixed; bottom: 64px; left: 22px;
+  width: 268px;
+  background: rgba(10,10,22,0.96);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 14px; backdrop-filter: blur(28px);
+  padding: 18px 18px; z-index: 50;
+  transform: translateY(8px); opacity: 0; pointer-events: none;
+  transition: opacity 0.22s ease, transform 0.22s ease;
+}
+#settingsPanel.open { opacity: 1; transform: translateY(0); pointer-events: auto; }
+
+.settings-title {
+  font-size: 9px; font-weight: 300; letter-spacing: 0.35em;
+  text-transform: uppercase; color: var(--text-4); margin-bottom: 14px;
+}
+.settings-row { display: flex; align-items: center; gap: 8px; margin-bottom: 9px; }
+.settings-label { font-size: 10px; color: var(--text-3); width: 62px; flex-shrink: 0; letter-spacing: 0.05em; }
+.settings-input {
+  flex: 1; background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08); border-radius: 7px;
+  color: var(--text-2); font-size: 10px; font-family: var(--font);
+  padding: 5px 9px; outline: none;
+  transition: border-color 0.2s ease;
+}
+.settings-input:focus { border-color: rgba(0,212,255,0.35); }
+.api-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; background: rgba(255,255,255,0.14); }
+.api-dot.on { background: var(--green); box-shadow: 0 0 5px rgba(0,230,118,0.65); }
+.settings-sep { height: 1px; background: rgba(255,255,255,0.05); margin: 12px 0 10px; }
+.settings-save {
+  width: 100%; margin-top: 6px;
+  background: rgba(58,142,255,0.10);
+  border: 1px solid rgba(58,142,255,0.26);
+  color: rgba(58,142,255,0.75); border-radius: 7px;
+  font-size: 9px; letter-spacing: 0.22em; text-transform: uppercase;
+  font-family: var(--font); cursor: pointer; padding: 7px 0;
+  transition: all 0.2s ease;
+}
+.settings-save:hover { background: rgba(58,142,255,0.20); color: var(--blue); }
+
+/* ── Bottom bar ── */
+.bottom-bar {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 24px;
+  border-top: 1px solid rgba(255,255,255,0.035);
+  background: rgba(0,0,0,0.40);
+  backdrop-filter: blur(8px);
+  z-index: 5;
+}
+.bottom-ver {
+  font-size: 9px; font-weight: 200; letter-spacing: 0.30em;
+  text-transform: uppercase; color: var(--text-4);
+}
+.bottom-center { display: flex; align-items: center; gap: 6px; }
+.pulse-dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--green); box-shadow: 0 0 5px rgba(0,230,118,0.65);
+  animation: pulseDot 2s ease-in-out infinite;
+}
+@keyframes pulseDot { 0%,100%{opacity:1} 50%{opacity:0.35} }
+.bottom-status-text {
+  font-size: 9px; font-weight: 300; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--text-4);
+}
+.bottom-right { display: flex; gap: 6px; }
+
+/* ─── Misc utils ─── */
+@media (prefers-reduced-motion:reduce) {
+  .orb,.halo-ring,.boot-orb,.boot-ring,.particle { animation: none !important; }
 }
 </style>
 </head>
 <body>
 
-<div class="ambient">
-  <div class="space-gradient"></div>
-  <div class="stars stars-3"></div>
-  <div class="stars stars-2"></div>
-  <div class="stars stars-1"></div>
-  <div class="ambient-blob blob-1"></div>
-  <div class="ambient-blob blob-2"></div>
-  <div class="ambient-blob blob-3"></div>
+<!-- ═══ VOID BACKGROUND ═══ -->
+<div class="bg">
+  <div class="bg-base"></div>
+  <div class="bg-nebula"></div>
+  <div class="bg-halo"></div>
 </div>
 
-<p class="orion-name">ORION AI</p>
+<!-- ═══════════════════════════════════════
+     BOOT SCREEN
+═══════════════════════════════════════ -->
+<div id="bootScreen">
+  <p class="boot-logo">O R I O N&nbsp;&nbsp;&nbsp;A I</p>
 
-<main class="scene">
-  <div class="orb-scene" id="orbScene" role="button" aria-label="Ativar ORION" tabindex="0">
-    <div class="halo-ring halo-ring-1"></div>
-    <div class="halo-ring halo-ring-2"></div>
-    <div class="halo-ring halo-ring-3"></div>
-    <div class="orb" id="orb">
-      <canvas class="orb-canvas" id="orbCanvas"></canvas>
-      <div class="glass-highlight"></div>
-      <div class="glass-rim"></div>
-      <div class="glass-side"></div>
+  <div class="boot-orb-wrap">
+    <div class="boot-ring boot-ring-2"></div>
+    <div class="boot-ring boot-ring-1"></div>
+    <div class="boot-orb"></div>
+  </div>
+
+  <div class="boot-lines">
+    <p class="boot-line" id="bl0">Inicializando sistemas</p>
+    <p class="boot-line" id="bl1">Conectando ao núcleo Orion</p>
+    <p class="boot-line" id="bl2">Carregando módulos de IA</p>
+    <p class="boot-line" id="bl3">Sistemas online</p>
+  </div>
+
+  <div class="boot-bar-wrap"><div class="boot-bar" id="bootBar"></div></div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     APP SHELL
+═══════════════════════════════════════ -->
+<div id="app">
+
+  <!-- LEFT SIDEBAR -->
+  <aside id="sidebar">
+    <div class="sidebar-header">
+      <p class="sidebar-logo">Orion AI</p>
+      <div class="sidebar-status-row">
+        <div class="status-item">
+          <span class="status-label">Sistema</span>
+          <span class="status-val"><span class="dot dot-on"></span>Online</span>
+        </div>
+        <div class="status-item">
+          <span class="status-label">Núcleo</span>
+          <span class="status-val"><span class="dot dot-on"></span>Estável</span>
+        </div>
+        <div class="status-item">
+          <span class="status-label">Memória</span>
+          <span class="status-val"><span class="dot dot-on"></span>Ativa</span>
+        </div>
+        <div class="status-item">
+          <span class="status-label">Versão</span>
+          <span class="status-val" id="sbApiStatus"><span class="dot dot-idle" id="extDot"></span><span id="extLabel">Sem IA ext.</span></span>
+        </div>
+      </div>
     </div>
-  </div>
-  <p class="status" id="status">Toque para ativar</p>
-</main>
 
-<p class="hint-pill" id="hintPill">pressione · fale · solte</p>
+    <div class="sidebar-section">
+      <p class="sidebar-section-title">Modos de IA</p>
+      <button class="mode-btn active" data-mode="explorer" onclick="setMode('explorer',this)">
+        <span class="mode-icon">🌌</span>
+        <span class="mode-text">
+          <span class="mode-name">Explorador</span>
+          <span class="mode-sub">Conversas · Ideias · Descobertas</span>
+        </span>
+      </button>
+      <button class="mode-btn" data-mode="dev" onclick="setMode('dev',this)">
+        <span class="mode-icon">💻</span>
+        <span class="mode-text">
+          <span class="mode-name">Desenvolvedor</span>
+          <span class="mode-sub">Programação · Debug · Projetos</span>
+        </span>
+      </button>
+      <button class="mode-btn" data-mode="ai" onclick="setMode('ai',this)">
+        <span class="mode-icon">🤖</span>
+        <span class="mode-text">
+          <span class="mode-name">Engenheiro IA</span>
+          <span class="mode-sub">ML · Modelos · Automação</span>
+        </span>
+      </button>
+      <button class="mode-btn" data-mode="study" onclick="setMode('study',this)">
+        <span class="mode-icon">📚</span>
+        <span class="mode-text">
+          <span class="mode-name">Estudos</span>
+          <span class="mode-sub">Explicações · Exercícios · Planos</span>
+        </span>
+      </button>
+    </div>
 
-<p class="version-badge">versão 2.5</p>
+    <div class="sys-panel">
+      <p class="sys-title">Sistemas</p>
+      <div class="sys-item"><span class="dot dot-on"></span><span class="sys-name">Memória</span></div>
+      <div class="sys-item"><span class="dot dot-on"></span><span class="sys-name">Conversação</span></div>
+      <div class="sys-item"><span class="dot dot-on"></span><span class="sys-name">Código</span></div>
+      <div class="sys-item"><span class="dot dot-on"></span><span class="sys-name">Pesquisa</span></div>
+      <div class="sys-item"><span class="dot dot-on"></span><span class="sys-name">Voz</span></div>
+      <div class="sys-separator"></div>
+      <p class="sys-title">Em desenvolvimento</p>
+      <div class="sys-item"><span class="dot dot-dev"></span><span class="sys-name">Visão</span><span class="sys-badge em-dev">Em breve</span></div>
+      <div class="sys-item"><span class="dot dot-dev"></span><span class="sys-name">Arquivos</span><span class="sys-badge em-dev">Em breve</span></div>
+      <div class="sys-item"><span class="dot dot-dev"></span><span class="sys-name">Automações</span><span class="sys-badge em-dev">Em breve</span></div>
+    </div>
 
-<!-- API settings panel -->
-<div class="api-panel" id="apiPanel">
-  <h4>módulos de ia externos</h4>
-  <div class="api-row">
-    <label>Gemini</label>
-    <input type="password" id="keyGemini" placeholder="cole sua key…">
-    <div class="dot-status" id="dotGemini"></div>
-  </div>
-  <div class="api-row">
-    <label>Claude</label>
-    <input type="password" id="keyClaude" placeholder="cole sua key…">
-    <div class="dot-status" id="dotClaude"></div>
-  </div>
-  <div class="api-row">
-    <label>OpenAI</label>
-    <input type="password" id="keyOpenAI" placeholder="cole sua key…">
-    <div class="dot-status" id="dotOpenAI"></div>
-  </div>
+    <div class="sidebar-footer">
+      <span class="sidebar-footer-label">Configurações</span>
+      <button class="icon-btn" id="settingsBtn" title="API Keys">⚙</button>
+    </div>
+  </aside>
 
-  <h4 style="margin-top:18px">voz neural — elevenlabs</h4>
-  <div class="api-row">
-    <label>API Key</label>
-    <input type="password" id="keyElevenLabs" placeholder="cole sua key…">
-    <div class="dot-status" id="dotElevenLabs"></div>
-  </div>
-  <div class="api-row">
-    <label>Voice ID</label>
-    <input type="text" id="voiceIdElevenLabs" placeholder="opcional · ex: pNInz6obpgDQGcFmaJgB">
-  </div>
-  <p style="font-size:10px;line-height:1.5;color:rgba(232,240,255,0.30);margin:-2px 0 12px">
-    Sem Voice ID, ORION usa uma voz masculina grave padrão. Pegue a sua em elevenlabs.io.
-  </p>
+  <!-- MAIN STAGE -->
+  <main id="stage">
+    <!-- Top bar -->
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="menu-btn" id="menuBtn" title="Menu">☰</button>
+        <span class="topbar-brand">Orion AI</span>
+      </div>
+      <div class="topbar-right">
+        <span class="mode-pill" id="modePill" onclick="toggleChat()">🌌 Explorador</span>
+        <button class="icon-btn" onclick="toggleChat()" title="Chat">💬</button>
+      </div>
+    </div>
 
-  <button class="api-save" id="saveKeys">Salvar e ativar</button>
+    <!-- Orb center area -->
+    <div class="orb-center">
+      <div class="orb-stage" id="orbStage">
+        <div class="halo-ring halo-1"></div>
+        <div class="halo-ring halo-2"></div>
+        <div class="halo-ring halo-3"></div>
+        <div class="particles" id="particles"></div>
+        <div class="orb" id="orb">
+          <canvas class="orb-canvas" id="orbCanvas"></canvas>
+          <div class="glass-hi"></div>
+          <div class="glass-rim"></div>
+          <div class="glass-side"></div>
+        </div>
+      </div>
+
+      <div class="status-line">
+        <span class="status-text" id="statusText">Toque para ativar</span>
+        <span class="status-sub" id="statusSub"></span>
+        <span class="hint-line" id="hintLine">toque · fale · resposta</span>
+      </div>
+    </div>
+
+    <!-- Bottom bar -->
+    <div class="bottom-bar">
+      <span class="bottom-ver">v3.0</span>
+      <div class="bottom-center">
+        <div class="pulse-dot"></div>
+        <span class="bottom-status-text" id="bottomStatus">Sistema operacional</span>
+      </div>
+      <div class="bottom-right">
+        <button class="icon-btn" onclick="toggleSidebar()" title="Painel">◈</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- RIGHT CHAT PANEL -->
+  <aside id="chatPanel">
+    <div class="chat-header">
+      <span class="chat-title">Conversa</span>
+      <span class="chat-count" id="chatCount">0 mensagens</span>
+    </div>
+    <div id="chatMessages"></div>
+    <div class="chat-input-row">
+      <textarea id="chatInput" placeholder="Digite sua mensagem…" rows="1"></textarea>
+      <button class="send-btn" id="sendBtn" title="Enviar">↑</button>
+    </div>
+  </aside>
+
 </div>
 
-<button class="key-btn" id="keyBtn" title="Configurações">⚙</button>
+<!-- SETTINGS FLOATING PANEL -->
+<div id="settingsPanel">
+  <p class="settings-title">Módulos de IA Externos</p>
+  <div class="settings-row">
+    <span class="settings-label">Gemini</span>
+    <input type="password" class="settings-input" id="keyGemini" placeholder="Cole sua key…">
+    <div class="api-dot" id="dotGemini"></div>
+  </div>
+  <div class="settings-row">
+    <span class="settings-label">Claude</span>
+    <input type="password" class="settings-input" id="keyClaude" placeholder="Cole sua key…">
+    <div class="api-dot" id="dotClaude"></div>
+  </div>
+  <div class="settings-row">
+    <span class="settings-label">OpenAI</span>
+    <input type="password" class="settings-input" id="keyOpenAI" placeholder="Cole sua key…">
+    <div class="api-dot" id="dotOpenAI"></div>
+  </div>
+  <div class="settings-sep"></div>
+  <p class="settings-title">Voz Neural — ElevenLabs</p>
+  <div class="settings-row">
+    <span class="settings-label">API Key</span>
+    <input type="password" class="settings-input" id="keyElevenLabs" placeholder="Cole sua key…">
+    <div class="api-dot" id="dotElevenLabs"></div>
+  </div>
+  <div class="settings-row">
+    <span class="settings-label">Voice ID</span>
+    <input type="text" class="settings-input" id="voiceIdEleven" placeholder="Padrão: voz masculina grave">
+  </div>
+  <button class="settings-save" id="saveSettings">Salvar e ativar</button>
+</div>
 
 <!-- ═══════════════════════════════════════════════════════
-     ORION VISUAL — orb.js
-     Responsável pela aurora e animações do orb
+     ORB VISUAL ENGINE
 ═══════════════════════════════════════════════════════ -->
 <script>
 const ORB = (() => {
   const canvas  = document.getElementById('orbCanvas');
   const ctx     = canvas.getContext('2d');
   const orbEl   = document.getElementById('orb');
-  const sceneEl = document.getElementById('orbScene');
+  const stageEl = document.getElementById('orbStage');
 
-  let currentState    = 'idle';
-  let targetAmplitude = 1.0;
-  let auroraAmplitude = 1.0;
-  let targetSpeed     = 1.0;
-  let auroraSpeed     = 1.0;
-  let thinkHue        = 260;
+  let state           = 'idle';
+  let targetAmp       = 1.0, amp = 1.0;
+  let targetSpd       = 1.0, spd = 1.0;
+  let thinkHue        = 265;
 
   const blobs = [
-    { x:0.45, y:0.55, r:0.42, hue:210, speed:0.0013, angle:0,    drift:0.24 },
-    { x:0.55, y:0.40, r:0.34, hue:265, speed:0.0019, angle:2.1,  drift:0.20 },
-    { x:0.38, y:0.62, r:0.28, hue:188, speed:0.0016, angle:4.2,  drift:0.16 },
-    { x:0.62, y:0.48, r:0.23, hue:230, speed:0.0022, angle:1.0,  drift:0.13 },
-    { x:0.50, y:0.42, r:0.19, hue:295, speed:0.0024, angle:3.3,  drift:0.11 },
-    { x:0.30, y:0.50, r:0.15, hue:170, speed:0.0028, angle:5.1,  drift:0.09 },
+    { x:0.45, y:0.55, r:0.42, hue:210, speed:0.0013, angle:0,   drift:0.22 },
+    { x:0.56, y:0.40, r:0.34, hue:270, speed:0.0018, angle:2.1, drift:0.19 },
+    { x:0.38, y:0.62, r:0.28, hue:190, speed:0.0016, angle:4.2, drift:0.15 },
+    { x:0.63, y:0.48, r:0.23, hue:230, speed:0.0022, angle:1.0, drift:0.12 },
+    { x:0.50, y:0.42, r:0.19, hue:298, speed:0.0025, angle:3.3, drift:0.10 },
+    { x:0.30, y:0.50, r:0.15, hue:172, speed:0.0028, angle:5.1, drift:0.08 },
   ];
 
-  const STATE_CFG = {
-    idle:      { cls:'',          sceneCls:'',               status:'Toque para ativar', amplitude:1.0,  speed:1.0  },
-    listening: { cls:'listening', sceneCls:'state-listening', status:'Ouvindo…',          amplitude:1.55, speed:1.35 },
-    thinking:  { cls:'thinking',  sceneCls:'state-thinking',  status:'Processando…',      amplitude:1.30, speed:1.80 },
-    speaking:  { cls:'speaking',  sceneCls:'state-speaking',  status:'',                  amplitude:1.45, speed:1.60 },
-    error:     { cls:'error',     sceneCls:'state-error',     status:'',                  amplitude:0.88, speed:0.80 },
+  const STATES = {
+    idle:      { stCls:'',           amp:1.00, spd:1.00  },
+    listening: { stCls:'s-listening',amp:1.55, spd:1.35  },
+    thinking:  { stCls:'s-thinking', amp:1.32, spd:1.85  },
+    speaking:  { stCls:'s-speaking', amp:1.45, spd:1.58  },
+    error:     { stCls:'s-error',    amp:0.88, spd:0.80  },
   };
 
   function resize() {
@@ -503,81 +955,87 @@ const ORB = (() => {
     ctx.save();
     ctx.beginPath(); ctx.arc(R, R, R - 1, 0, Math.PI * 2); ctx.clip();
 
-    /* Background */
+    /* Base background */
     let bg;
-    if (currentState === 'thinking') {
-      thinkHue = (thinkHue + 0.6) % 360;
-      const h2 = (thinkHue + 60) % 360;
-      bg = ctx.createRadialGradient(R * 0.85, R * 0.65, 0, R, R, R);
-      bg.addColorStop(0, `hsla(${thinkHue}, 85%, 45%, 0.60)`);
-      bg.addColorStop(0.5, `hsla(${h2}, 75%, 25%, 0.65)`);
-      bg.addColorStop(1, 'rgba(2,2,12,0.88)');
+    if (state === 'thinking') {
+      thinkHue = (thinkHue + 0.55) % 360;
+      const h2 = (thinkHue + 65) % 360;
+      bg = ctx.createRadialGradient(R * 0.82, R * 0.62, 0, R, R, R);
+      bg.addColorStop(0,   `hsla(${thinkHue}, 82%, 42%, 0.58)`);
+      bg.addColorStop(0.5, `hsla(${h2}, 70%, 22%, 0.62)`);
+      bg.addColorStop(1,   'rgba(2,2,14,0.90)');
     } else {
-      thinkHue = 260;
-      bg = ctx.createRadialGradient(R * 0.85, R * 0.65, 0, R, R, R);
-      bg.addColorStop(0, currentState === 'speaking'
-        ? 'rgba(0,80,40,0.50)' : 'rgba(30,60,140,0.40)');
-      bg.addColorStop(0.5, 'rgba(10,15,50,0.60)');
-      bg.addColorStop(1, 'rgba(2,2,12,0.85)');
+      thinkHue = 265;
+      bg = ctx.createRadialGradient(R * 0.82, R * 0.62, 0, R, R, R);
+      bg.addColorStop(0,   state === 'speaking' ? 'rgba(0,70,36,0.48)' : 'rgba(24,52,130,0.38)');
+      bg.addColorStop(0.5, 'rgba(8,12,44,0.58)');
+      bg.addColorStop(1,   'rgba(2,2,12,0.86)');
     }
     ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
 
-    auroraAmplitude += (targetAmplitude - auroraAmplitude) * 0.04;
-    auroraSpeed     += (targetSpeed     - auroraSpeed)     * 0.04;
+    amp += (targetAmp - amp) * 0.038;
+    spd += (targetSpd - spd) * 0.038;
 
     /* Aurora blobs */
-    blobs.forEach(blob => {
-      blob.angle += blob.speed * auroraSpeed;
-      const cx = (blob.x + Math.cos(blob.angle) * blob.drift) * W;
-      const cy = (blob.y + Math.sin(blob.angle * 1.3) * blob.drift) * H;
-      const radius = blob.r * W * (currentState === 'speaking' ? 0.7 : auroraAmplitude);
-      const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius);
-      if (currentState === 'speaking') {
-        grad.addColorStop(0,   `hsla(145, 70%, 55%, 0.28)`);
-        grad.addColorStop(1,   'transparent');
+    blobs.forEach(b => {
+      b.angle += b.speed * spd;
+      const cx = (b.x + Math.cos(b.angle) * b.drift) * W;
+      const cy = (b.y + Math.sin(b.angle * 1.28) * b.drift) * H;
+      const rad = b.r * W * (state === 'speaking' ? 0.68 : amp);
+      const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, rad);
+      if (state === 'speaking') {
+        g.addColorStop(0, `hsla(148, 72%, 52%, 0.26)`);
+        g.addColorStop(1, 'transparent');
       } else {
-        grad.addColorStop(0,   `hsla(${blob.hue}, 88%, 70%, 0.62)`);
-        grad.addColorStop(0.45, `hsla(${blob.hue + 22}, 78%, 54%, 0.28)`);
-        grad.addColorStop(1,   'transparent');
-        blob.hue = (blob.hue + 0.07) % 360;
+        g.addColorStop(0,    `hsla(${b.hue}, 85%, 68%, 0.60)`);
+        g.addColorStop(0.45, `hsla(${b.hue + 20}, 76%, 52%, 0.26)`);
+        g.addColorStop(1,    'transparent');
+        b.hue = (b.hue + 0.07) % 360;
       }
-      ctx.fillStyle = grad;
-      ctx.beginPath(); ctx.arc(cx, cy, radius, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(cx, cy, rad, 0, Math.PI * 2); ctx.fill();
     });
 
     /* Thinking spiral */
-    if (currentState === 'thinking') {
-      const t3 = ts * 0.0012;
+    if (state === 'thinking') {
+      const t = ts * 0.0011;
       for (let i = 0; i < 5; i++) {
-        const a = t3 * (0.8 + i * 0.3) + i * 1.257;
-        const dist = R * (0.10 + i * 0.06);
-        const ox = R + Math.cos(a) * dist, oy = R + Math.sin(a) * dist;
-        const gr = ctx.createRadialGradient(ox, oy, 0, ox, oy, R * 0.09);
-        gr.addColorStop(0, `hsla(${(thinkHue + i*30) % 360}, 90%, 72%, 0.55)`);
+        const a = t * (0.7 + i * 0.28) + i * 1.257;
+        const d = R * (0.09 + i * 0.055);
+        const ox = R + Math.cos(a) * d, oy = R + Math.sin(a) * d;
+        const gr = ctx.createRadialGradient(ox, oy, 0, ox, oy, R * 0.085);
+        gr.addColorStop(0, `hsla(${(thinkHue + i*32) % 360}, 90%, 70%, 0.52)`);
         gr.addColorStop(1, 'transparent');
         ctx.fillStyle = gr;
-        ctx.beginPath(); ctx.arc(ox, oy, R * 0.09, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(ox, oy, R * 0.085, 0, Math.PI * 2); ctx.fill();
       }
     }
 
-    /* Speaking: waveform rings */
-    if (currentState === 'speaking') {
-      const t4 = ts * 0.003;
+    /* Speaking rings */
+    if (state === 'speaking') {
+      const t = ts * 0.0028;
       for (let i = 0; i < 3; i++) {
-        const wave = Math.sin(t4 + i * 1.2) * 0.06;
-        const wr = R * (0.55 + i * 0.09 + wave);
-        ctx.beginPath();
-        ctx.arc(R, R, wr, 0, Math.PI * 2);
-        ctx.strokeStyle = `rgba(0,230,120,${0.12 - i * 0.03})`;
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
+        const w = Math.sin(t + i * 1.18) * 0.055;
+        const wr = R * (0.52 + i * 0.088 + w);
+        ctx.beginPath(); ctx.arc(R, R, wr, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(0,230,118,${0.11 - i * 0.03})`;
+        ctx.lineWidth = 1.5; ctx.stroke();
       }
+    }
+
+    /* Listening ripple */
+    if (state === 'listening') {
+      const t = ts * 0.0014;
+      const wr = R * (0.58 + Math.sin(t) * 0.04);
+      ctx.beginPath(); ctx.arc(R, R, wr, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(0,212,255,0.14)';
+      ctx.lineWidth = 1; ctx.stroke();
     }
 
     /* Vignette */
-    const vig = ctx.createRadialGradient(R, R, R * 0.38, R, R, R);
+    const vig = ctx.createRadialGradient(R, R, R * 0.35, R, R, R);
     vig.addColorStop(0, 'transparent');
-    vig.addColorStop(1, 'rgba(0,0,10,0.70)');
+    vig.addColorStop(1, 'rgba(0,0,10,0.72)');
     ctx.fillStyle = vig;
     ctx.beginPath(); ctx.arc(R, R, R - 1, 0, Math.PI * 2); ctx.fill();
     ctx.restore();
@@ -586,24 +1044,17 @@ const ORB = (() => {
   }
 
   function setState(name) {
-    const cfg = STATE_CFG[name] || STATE_CFG.idle;
-    currentState = name;
-
-    orbEl.classList.remove('listening','thinking','speaking','error');
-    if (cfg.cls) orbEl.classList.add(cfg.cls);
-
-    sceneEl.classList.remove('state-listening','state-thinking','state-speaking','state-error');
-    if (cfg.sceneCls) sceneEl.classList.add(cfg.sceneCls);
-
-    targetAmplitude = cfg.amplitude;
-    targetSpeed     = cfg.speed;
-
-    return cfg.status;
+    const cfg = STATES[name] || STATES.idle;
+    state = name;
+    orbEl.className   = 'orb ' + (name !== 'idle' ? 's-' + name : '');
+    stageEl.className = 'orb-stage ' + (name !== 'idle' ? 's-' + name : '');
+    targetAmp = cfg.amp;
+    targetSpd = cfg.spd;
   }
 
   function pressEffect() {
     orbEl.classList.add('pressed');
-    setTimeout(() => orbEl.classList.remove('pressed'), 180);
+    setTimeout(() => orbEl.classList.remove('pressed'), 140);
   }
 
   function init() {
@@ -617,690 +1068,558 @@ const ORB = (() => {
 </script>
 
 <!-- ═══════════════════════════════════════════════════════
-     ORION VOICE — voice.js
-     Reconhecimento de voz + síntese de voz.
-     Prioriza ElevenLabs (voz neural, estilo J.A.R.V.I.S);
-     cai para a voz nativa do navegador se não houver key.
+     PARTICLE ENGINE
+═══════════════════════════════════════════════════════ -->
+<script>
+const PARTICLES = (() => {
+  const container = document.getElementById('particles');
+  const COUNT = 18;
+  let active = false;
+
+  function rnd(a, b) { return a + Math.random() * (b - a); }
+  function mkParticle() {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const angle = rnd(0, 360);
+    const dist  = rnd(48, 100);
+    const dx = Math.cos(angle * Math.PI / 180) * dist;
+    const dy = Math.sin(angle * Math.PI / 180) * dist;
+    const size = rnd(1.5, 3.5);
+    const colors = ['#3a8eff','#00d4ff','#8b5cf6','#00e676','#ffffff'];
+    const clr = colors[Math.floor(Math.random() * colors.length)];
+    const dur = rnd(1800, 4200);
+    const delay = rnd(0, 2000);
+
+    p.style.cssText = `
+      left: ${50 + rnd(-8,8)}%;
+      top:  ${50 + rnd(-8,8)}%;
+      width:  ${size}px; height: ${size}px;
+      background: ${clr};
+      --dx: ${dx}px; --dy: ${dy}px;
+      animation: particleDrift ${dur}ms ${delay}ms linear infinite;
+      box-shadow: 0 0 ${size * 2}px ${clr};
+    `;
+    return p;
+  }
+
+  function activate() {
+    if (active) return; active = true;
+    for (let i = 0; i < COUNT; i++) container.appendChild(mkParticle());
+  }
+  function deactivate() {
+    if (!active) return; active = false;
+    container.innerHTML = '';
+  }
+  function pulse() {
+    activate();
+    setTimeout(deactivate, 8000);
+  }
+
+  return { activate, deactivate, pulse };
+})();
+</script>
+
+<!-- ═══════════════════════════════════════════════════════
+     VOICE ENGINE
 ═══════════════════════════════════════════════════════ -->
 <script>
 const VOICE = (() => {
-  const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-  const synth     = window.speechSynthesis;
+  const SR    = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const synth = window.speechSynthesis;
+  let rec     = null;
+  let isRec   = false;
+  let onRes   = null;
+  let onSt    = null;
+  let curAudio= null;
+  let spkTimer= null;
+  let cachedV = null;
+  let vReady  = false;
 
-  let recognition   = null;
-  let isListening   = false;
-  let onResult      = null;
-  let onStateChange = null;
+  const DEFAULT_11_VOICE = 'onwK4e9ZLuTAKqWW03F9';
+  const ELEVEN_MODEL     = 'eleven_multilingual_v2';
 
-  let speakPulseTimer = null;
-  let cachedVoice      = null;
-  let voicesReady       = false;
-
-  let currentAudioEl    = null; /* elemento <audio> usado pelo ElevenLabs */
-
-  /* Voz padrão sugerida: masculina, grave, multilíngue (fala PT-BR bem) */
-  const DEFAULT_ELEVEN_VOICE_ID = 'onwK4e9ZLuTAKqWW03F9'; /* Daniel — voz masculina grave */
-  const ELEVEN_MODEL = 'eleven_multilingual_v2';
-
-  /* ═══ Seleção da melhor voz NATIVA disponível (fallback) ═══ */
-  const MALE_NAME_HINTS = [
-    'male', 'homem', 'masculin', 'daniel', 'felipe', 'ricardo', 'antonio',
-    'diego', 'bruno', 'thiago', 'fred', 'george', 'arthur', 'guy', 'david',
-    'mark', 'alex', 'matthew', 'brian', 'eric', 'james', 'paulo'
-  ];
-  const FEMALE_NAME_HINTS = [
-    'female', 'mulher', 'feminin', 'luciana', 'maria', 'francisca', 'camila',
-    'vitoria', 'vitória', 'samantha', 'karen', 'susan', 'zira', 'fernanda',
-    'joana', 'helena'
-  ];
-  const PREMIUM_HINTS = ['neural', 'premium', 'enhanced', 'natural', 'wavenet', 'online'];
+  const MALE_H = ['male','masculin','daniel','felipe','ricardo','antonio','diego','bruno','fred','george','guy','david','mark','alex','matthew','paulo'];
+  const PREM_H = ['neural','premium','enhanced','natural','wavenet','online'];
 
   function scoreVoice(v) {
-    const name = v.name.toLowerCase();
-    let score = 0;
-
+    const n = v.name.toLowerCase();
+    let s = 0;
     const isPTBR = v.lang?.toLowerCase() === 'pt-br';
     const isPT   = v.lang?.toLowerCase().startsWith('pt');
     const isEN   = v.lang?.toLowerCase().startsWith('en');
-
-    const looksMale   = MALE_NAME_HINTS.some(h => name.includes(h));
-    const looksFemale = FEMALE_NAME_HINTS.some(h => name.includes(h));
-    const looksPremium = PREMIUM_HINTS.some(h => name.includes(h));
-
-    if (isPTBR) score += 50;
-    else if (isPT) score += 30;
-    else if (isEN) score += 10;
-    else return -1;
-
-    if (looksMale) score += 40;
-    if (looksFemale) score -= 35;
-    if (looksPremium) score += 20;
-    if (v.localService) score += 8;
-
-    return score;
+    if (isPTBR) s += 50; else if (isPT) s += 30; else if (isEN) s += 10; else return -1;
+    if (MALE_H.some(h => n.includes(h))) s += 40;
+    if (PREM_H.some(h => n.includes(h))) s += 20;
+    if (v.localService) s += 8;
+    return s;
   }
-
-  function pickBestVoice() {
-    const voices = synth.getVoices();
-    if (!voices.length) return null;
-
-    let best = null, bestScore = -Infinity;
-    for (const v of voices) {
-      const s = scoreVoice(v);
-      if (s > bestScore) { bestScore = s; best = v; }
-    }
-    if (!best) {
-      best = voices.find(v => v.lang?.toLowerCase().startsWith('pt')) || voices[0];
-    }
-    return best;
+  function pickVoice() {
+    const vs = synth.getVoices();
+    if (!vs.length) return null;
+    let best = null, bS = -Infinity;
+    vs.forEach(v => { const s = scoreVoice(v); if (s > bS) { bS = s; best = v; } });
+    return best || vs.find(v => v.lang?.toLowerCase().startsWith('pt')) || vs[0];
   }
+  function refreshCache() { const v = pickVoice(); if (v) { cachedV = v; vReady = true; } }
 
-  function refreshVoiceCache() {
-    const v = pickBestVoice();
-    if (v) { cachedVoice = v; voicesReady = true; }
-  }
-
-  function init(callbacks) {
-    onResult      = callbacks.onResult;
-    onStateChange = callbacks.onStateChange;
-
+  function init(cbs) {
+    onRes = cbs.onResult; onSt = cbs.onStateChange;
     if (synth) {
-      refreshVoiceCache();
-      if (synth.onvoiceschanged !== undefined) {
-        synth.onvoiceschanged = refreshVoiceCache;
-      }
+      refreshCache();
+      if (synth.onvoiceschanged !== undefined) synth.onvoiceschanged = refreshCache;
     }
-
-    if (!SpeechRec) { console.warn('SpeechRecognition não suportado.'); return; }
-
-    recognition = new SpeechRec();
-    recognition.lang           = 'pt-BR';
-    recognition.interimResults = true;
-    recognition.continuous     = false;
-    recognition.maxAlternatives = 1;
-
-    recognition.onstart = () => {
-      isListening = true;
-      onStateChange('listening');
-    };
-
-    recognition.onerror = (e) => {
-      console.warn('Voice error:', e.error);
-      isListening = false;
-      if (e.error === 'no-speech') {
-        onStateChange('idle');
-      } else {
-        onStateChange('error', 'Não consegui ouvir. Tente novamente.');
-      }
-    };
-
-    recognition.onend = () => {
-      if (isListening) {
-        isListening = false;
-        if (onStateChange) onStateChange('idle');
-      }
-    };
-
-    recognition.onresult = (event) => {
-      let interim = '', final = '';
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const text = event.results[i][0].transcript;
-        if (event.results[i].isFinal) final += text;
-        else interim += text;
-      }
-      if (final.trim()) {
-        isListening = false;
-        onResult(final.trim());
-      }
+    if (!SR) { console.warn('SpeechRecognition unavailable'); return; }
+    rec = new SR();
+    rec.lang = 'pt-BR'; rec.interimResults = true;
+    rec.continuous = false; rec.maxAlternatives = 1;
+    rec.onstart  = () => { isRec = true; onSt('listening'); };
+    rec.onerror  = e => { isRec = false; onSt(e.error === 'no-speech' ? 'idle' : 'error', 'Não consegui ouvir. Tente novamente.'); };
+    rec.onend    = () => { if (isRec) { isRec = false; onSt('idle'); } };
+    rec.onresult = e => {
+      let fin = '';
+      for (let i = e.resultIndex; i < e.results.length; i++)
+        if (e.results[i].isFinal) fin += e.results[i][0].transcript;
+      if (fin.trim()) { isRec = false; onRes(fin.trim()); }
     };
   }
 
   function startListening() {
-    if (!recognition) return false;
-    if (isListening) return false;
-    try { recognition.start(); return true; }
-    catch(e) { return false; }
+    if (!rec || isRec) return false;
+    try { rec.start(); return true; } catch(e) { return false; }
+  }
+  function stopListening() { if (rec && isRec) { rec.stop(); isRec = false; } }
+
+  function getEleven() {
+    return {
+      apiKey:  localStorage.getItem('orion_key_elevenlabs') || '',
+      voiceId: localStorage.getItem('orion_voiceid_elevenlabs') || DEFAULT_11_VOICE,
+    };
   }
 
-  function stopListening() {
-    if (recognition && isListening) { recognition.stop(); isListening = false; }
-  }
-
-  /* ═══ ElevenLabs — voz neural ═══ */
-  function getElevenLabsConfig() {
-    const apiKey  = localStorage.getItem('orion_key_elevenlabs') || '';
-    const voiceId = localStorage.getItem('orion_voiceid_elevenlabs') || DEFAULT_ELEVEN_VOICE_ID;
-    return { apiKey, voiceId };
-  }
-
-  async function speakElevenLabs(text, onStart, onEnd) {
-    const { apiKey, voiceId } = getElevenLabsConfig();
-
+  async function speakEleven(text, onStart, onEnd) {
+    const { apiKey, voiceId } = getEleven();
     const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'xi-api-key': apiKey
-      },
-      body: JSON.stringify({
-        text,
-        model_id: ELEVEN_MODEL,
-        voice_settings: {
-          stability: 0.55,
-          similarity_boost: 0.80,
-          style: 0.35,
-          use_speaker_boost: true,
-          speed: 0.96
-        }
-      })
+      headers: { 'Content-Type': 'application/json', 'xi-api-key': apiKey },
+      body: JSON.stringify({ text, model_id: ELEVEN_MODEL, voice_settings: { stability:0.55, similarity_boost:0.80, style:0.32, use_speaker_boost:true, speed:0.95 } })
     });
-
-    if (!res.ok) {
-      let msg = `ElevenLabs ${res.status}`;
-      try { const e = await res.json(); msg = e?.detail?.message || msg; } catch(_) {}
-      throw new Error(msg);
-    }
-
+    if (!res.ok) throw new Error(`ElevenLabs ${res.status}`);
     const blob = await res.blob();
     const url  = URL.createObjectURL(blob);
-
-    if (currentAudioEl) { currentAudioEl.pause(); currentAudioEl = null; }
-    const audio = new Audio(url);
-    currentAudioEl = audio;
-
-    audio.onplay  = () => { startSpeakPulse(); if (onStart) onStart(); };
-    audio.onended = () => { stopSpeakPulse(); URL.revokeObjectURL(url); currentAudioEl = null; if (onEnd) onEnd(); };
-    audio.onerror = () => { stopSpeakPulse(); URL.revokeObjectURL(url); currentAudioEl = null; if (onEnd) onEnd(); };
-
-    await audio.play();
+    if (curAudio) { curAudio.pause(); curAudio = null; }
+    const au = new Audio(url);
+    curAudio = au;
+    au.onplay  = () => { startSpkPulse(); if (onStart) onStart(); };
+    au.onended = () => { stopSpkPulse(); URL.revokeObjectURL(url); curAudio = null; if (onEnd) onEnd(); };
+    au.onerror = () => { stopSpkPulse(); URL.revokeObjectURL(url); curAudio = null; if (onEnd) onEnd(); };
+    await au.play();
   }
 
-  /* ═══ Voz nativa do navegador (fallback) ═══ */
   function speakNative(text, onStart, onEnd) {
     synth.cancel();
-    const utt = new SpeechSynthesisUtterance(text);
-
-    if (!voicesReady) refreshVoiceCache();
-    const voice = cachedVoice;
-
-    utt.lang   = voice ? voice.lang : 'pt-BR';
-    utt.rate   = 0.90;
-    utt.pitch  = 0.82;
-    utt.volume = 1.0;
-    if (voice) utt.voice = voice;
-
-    utt.onstart = () => { startSpeakPulse(); if (onStart) onStart(); };
-    utt.onend   = () => { stopSpeakPulse(); if (onEnd) onEnd(); };
-    utt.onerror = () => { stopSpeakPulse(); if (onEnd) onEnd(); };
-
-    synth.speak(utt);
+    const u = new SpeechSynthesisUtterance(text);
+    if (!vReady) refreshCache();
+    if (cachedV) { u.voice = cachedV; u.lang = cachedV.lang; }
+    else u.lang = 'pt-BR';
+    u.rate = 0.90; u.pitch = 0.82; u.volume = 1.0;
+    u.onstart = () => { startSpkPulse(); if (onStart) onStart(); };
+    u.onend   = () => { stopSpkPulse(); if (onEnd) onEnd(); };
+    u.onerror = () => { stopSpkPulse(); if (onEnd) onEnd(); };
+    synth.speak(u);
   }
 
-  /* ═══ Ponto de entrada único: tenta ElevenLabs, cai para nativo ═══ */
   async function speak(text, onStart, onEnd) {
-    const { apiKey } = getElevenLabsConfig();
-
+    const { apiKey } = getEleven();
     if (apiKey) {
-      try {
-        await speakElevenLabs(text, onStart, onEnd);
-        return;
-      } catch (err) {
-        console.warn('ElevenLabs falhou, usando voz nativa como reserva:', err.message);
-        /* segue para o fallback abaixo */
-      }
+      try { await speakEleven(text, onStart, onEnd); return; }
+      catch(e) { console.warn('ElevenLabs fallback:', e.message); }
     }
     speakNative(text, onStart, onEnd);
   }
 
   function stopSpeaking() {
     synth.cancel();
-    if (currentAudioEl) { currentAudioEl.pause(); currentAudioEl = null; }
-    stopSpeakPulse();
+    if (curAudio) { curAudio.pause(); curAudio = null; }
+    stopSpkPulse();
   }
 
-  function isSpeaking() { return synth.speaking || (currentAudioEl && !currentAudioEl.paused); }
+  function startSpkPulse() { spkTimer = setInterval(() => document.dispatchEvent(new CustomEvent('orion:speakpulse')), 105); }
+  function stopSpkPulse()  { clearInterval(spkTimer); }
 
-  function startSpeakPulse() {
-    speakPulseTimer = setInterval(() => {
-      document.dispatchEvent(new CustomEvent('orion:speakpulse'));
-    }, 110);
-  }
-
-  function stopSpeakPulse() { clearInterval(speakPulseTimer); }
-
-  return {
-    init, startListening, stopListening,
-    speak, stopSpeaking, isSpeaking,
-    isAvailable: !!SpeechRec
-  };
+  return { init, startListening, stopListening, speak, stopSpeaking, isAvailable: !!SR };
 })();
 </script>
 
 <!-- ═══════════════════════════════════════════════════════
-     ORION CORE — orion-core.js
-     Personalidade, comandos internos e roteamento de IA
-     (sem memória local — cada sessão começa do zero)
+     ORION CORE — IA, comandos e roteamento
 ═══════════════════════════════════════════════════════ -->
 <script>
-const ORION_CORE = (() => {
-
-  /* ─── Personalidade e respostas internas ─── */
-  const IDENTITY = {
-    name: 'ORION',
-    version: '3.0',
-    creator: 'Arquitetura proprietária',
-    mission: 'Auxiliar com inteligência, organização e tecnologia.',
-  };
-
-  /* Histórico de conversa em memória volátil (apenas durante a sessão atual,
-     usado só para dar contexto às respostas da API externa — não é salvo) */
+const CORE = (() => {
   let sessionHistory = [];
-  const MAX_HISTORY = 12;
+  const MAX_H = 14;
+  let currentMode = 'explorer';
 
   function addHistory(role, text) {
     sessionHistory.push({ role, text });
-    if (sessionHistory.length > MAX_HISTORY) sessionHistory = sessionHistory.slice(-MAX_HISTORY);
+    if (sessionHistory.length > MAX_H) sessionHistory = sessionHistory.slice(-MAX_H);
+  }
+  function buildHistory() {
+    return sessionHistory.map(h => ({ role: h.role === 'user' ? 'user' : 'assistant', content: h.text }));
   }
 
-  function buildHistoryForAPI() {
-    return sessionHistory.map(h => ({
-      role: h.role === 'user' ? 'user' : 'assistant',
-      content: h.text
-    }));
-  }
-
-  /* Banco de respostas da personalidade ORION */
-  const INTERNAL_RESPONSES = {
-    greeting: [
-      'Olá. Sistemas operacionais. Como posso auxiliá-lo?',
-      'Pronto. O que precisa?',
-      'Online e a postos. Pode falar.',
-    ],
-    whoAreYou: [
-      'Sou o ORION — seu assistente inteligente. Fui projetado para auxiliá-lo com precisão e eficiência.',
-      'ORION. Assistente de inteligência adaptativa. À sua disposição.',
-    ],
-    mission: [
-      'Minha missão: auxiliá-lo com inteligência, organização e tecnologia. Sou mais eficiente a cada interação.',
-    ],
-    capabilities: [
-      'Posso responder perguntas, consultar IAs externas e controlar esta interface. O que deseja?',
-    ],
-    thanks: [
-      'Para isso estou aqui.',
-      'Sempre às ordens.',
-      'Fico à disposição.',
-    ],
-    farewellResponse: [
-      'Sistemas em modo de espera. Até logo.',
-      'Permanecerei em standby. Quando precisar, estarei aqui.',
-    ],
-    helpResponse: 'Você pode me pedir para: responder perguntas, contar o horário atual, consultar informações — e muito mais quando IAs externas estiverem conectadas.',
-    timeResponse: () => {
-      const now = new Date();
-      return `São ${now.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' })} de ${now.toLocaleDateString('pt-BR', { weekday:'long', day:'numeric', month:'long' })}.`;
-    },
-    statusResponse: () => {
-      const has_ext = getActiveAPI() !== null;
-      return `Sistemas normais. IA externa: ${has_ext ? 'conectada' : 'desconectada'}.`;
-    },
+  const MODE_CONTEXT = {
+    explorer: 'O usuário está no Modo Explorador. Foque em conversas abertas, curiosidades, ideias e descobertas.',
+    dev:      'O usuário está no Modo Desenvolvedor. Foque em programação, debugging, arquitetura de código e projetos técnicos. Seja preciso e técnico.',
+    ai:       'O usuário está no Modo Engenheiro IA. Foque em Machine Learning, redes neurais, modelos de linguagem, pipelines de dados e automação inteligente.',
+    study:    'O usuário está no Modo Estudos. Foque em explicar conceitos de forma clara e didática, criar exercícios, e estruturar planos de aprendizado.',
   };
 
-  function rand(arr) {
-    if (typeof arr === 'function') return arr;
-    return arr[Math.floor(Math.random() * arr.length)];
-  }
+  const SYSTEM = () => `Você é ORION, um assistente de IA futurista criado para explorar conhecimento, tecnologia e o futuro.
+Estilo: Apple + NASA + ficção científica realista. Inteligente, direto, elegante e levemente formal — como uma IA de ficção científica.
+Responda SEMPRE em português do Brasil. Sem markdown, asteriscos ou listas numeradas — texto limpo para fala e leitura direta.
+Respostas curtas para perguntas simples; elabore apenas quando necessário. Nunca diga que é Gemini, Claude ou ChatGPT — você é ORION.
+${MODE_CONTEXT[currentMode] || ''}`;
 
-  /* ─── Comandos internos — não precisam de API externa ─── */
-  const COMMANDS = [
-    {
-      match: /\b(olá|oi|bom dia|boa tarde|boa noite|e aí|hello|hey)\b/i,
-      handle: () => rand(INTERNAL_RESPONSES.greeting)
-    },
-    {
-      match: /quem[é\s]+(você|vc|tu)/i,
-      handle: () => rand(INTERNAL_RESPONSES.whoAreYou)
-    },
-    {
-      match: /qual[é\s]+(sua|tua) (missão|objetivo|função|propósito)/i,
-      handle: () => rand(INTERNAL_RESPONSES.mission)
-    },
-    {
-      match: /o que (você|vc) (pode|consegue|sabe) (fazer|me ajudar)/i,
-      handle: () => rand(INTERNAL_RESPONSES.capabilities)
-    },
-    {
-      match: /\b(obrigad[ao]|valeu|agradeço|thanks)\b/i,
-      handle: () => rand(INTERNAL_RESPONSES.thanks)
-    },
-    {
-      match: /\b(tchau|até logo|até mais|adeus|bye)\b/i,
-      handle: () => rand(INTERNAL_RESPONSES.farewellResponse)
-    },
-    {
-      match: /\b(ajuda|help|o que posso|como funciona)\b/i,
-      handle: () => INTERNAL_RESPONSES.helpResponse
-    },
-    {
-      match: /(que horas|que hora|horário|hora atual|que dia|data de hoje)/i,
-      handle: () => INTERNAL_RESPONSES.timeResponse()
-    },
-    {
-      match: /(como você está|como vc tá|seu status|tudo bem|tudo certo)/i,
-      handle: () => INTERNAL_RESPONSES.statusResponse()
-    },
-    {
-      match: /(versão|qual versão|build|sistema)/i,
-      handle: () => `ORION versão ${IDENTITY.version}. Arquitetura modular. IA externa: ${getActiveAPI() || 'não conectada'}.`
-    },
+  const INTERNAL = {
+    greeting:     ['Olá. Sistemas operacionais. Como posso auxiliá-lo?', 'Pronto. O que precisa?', 'Online e a postos. Pode falar.'],
+    whoAreYou:    ['Sou o ORION — assistente de IA criado para explorar conhecimento, tecnologia e o futuro.', 'ORION. Inteligência adaptativa. À sua disposição.'],
+    mission:      ['Minha missão: auxiliar na exploração de conhecimento, tecnologia e o futuro. Sou mais eficiente a cada interação.'],
+    capabilities: ['Posso responder perguntas, analisar código, explicar conceitos, e consultar IAs externas. O que deseja?'],
+    thanks:       ['Para isso estou aqui.', 'Sempre às ordens.', 'Fico à disposição.'],
+    farewell:     ['Sistemas em modo de espera. Até logo.', 'Permanecerei em standby. Quando precisar, estarei aqui.'],
+  };
+  const rand = arr => arr[Math.floor(Math.random() * arr.length)];
+
+  const CMDS = [
+    { m: /\b(olá|oi|bom dia|boa tarde|boa noite|e aí|hello|hey)\b/i, h: () => rand(INTERNAL.greeting) },
+    { m: /quem[é\s]+(você|vc|tu)/i,                                    h: () => rand(INTERNAL.whoAreYou) },
+    { m: /qual[é\s]+(sua|tua) (missão|objetivo|função)/i,              h: () => rand(INTERNAL.mission) },
+    { m: /o que (você|vc) (pode|consegue|sabe) fazer/i,                h: () => rand(INTERNAL.capabilities) },
+    { m: /\b(obrigad[ao]|valeu|agradeço|thanks)\b/i,                   h: () => rand(INTERNAL.thanks) },
+    { m: /\b(tchau|até logo|até mais|adeus|bye)\b/i,                   h: () => rand(INTERNAL.farewell) },
+    { m: /(que horas|que hora|horário|hora atual|que dia|data)/i,       h: () => { const n = new Date(); return `São ${n.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})} de ${n.toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'})}.`; } },
+    { m: /(versão|qual versão|build|sistema)/i,                        h: () => `ORION versão 3.0. IA externa: ${getActiveAPI() || 'não conectada'}. Modo: ${currentMode}.` },
+    { m: /(como você está|seu status|tudo bem|tudo certo)/i,           h: () => `Sistemas normais. Modo ${currentMode} ativo. IA externa: ${getActiveAPI() || 'desconectada'}.` },
   ];
 
-  /* ─── API Keys ─── */
   const KEYS = {
     gemini: localStorage.getItem('orion_key_gemini') || '',
     claude: localStorage.getItem('orion_key_claude') || '',
     openai: localStorage.getItem('orion_key_openai') || '',
   };
 
-  function setKey(provider, val) {
-    KEYS[provider] = val;
-    localStorage.setItem(`orion_key_${provider}`, val);
-  }
-
-  function getActiveAPI() {
-    if (KEYS.gemini) return 'Gemini';
-    if (KEYS.claude) return 'Claude';
-    if (KEYS.openai) return 'OpenAI';
-    return null;
-  }
-
-  /* ─── External API calls ─── */
-  const ORION_SYSTEM = () => {
-    return `Você é ORION, um assistente de IA futurista e elegante, inspirado em J.A.R.V.I.S.
-Responda SEMPRE em português do Brasil.
-Seja inteligente, direto e sofisticado. Sem markdown, sem asteriscos, sem listas numeradas — apenas texto limpo para fala.
-Respostas curtas e objetivas para perguntas simples. Elabore apenas quando necessário.
-Nunca diga que é Gemini, Claude ou ChatGPT. Você é ORION.
-Você tem personalidade própria: preciso, elegante e levemente formal, como uma IA de ficção científica.`;
-  };
+  function setKey(k, v) { KEYS[k] = v; localStorage.setItem(`orion_key_${k}`, v); }
+  function getActiveAPI() { return KEYS.gemini ? 'Gemini' : KEYS.claude ? 'Claude' : KEYS.openai ? 'OpenAI' : null; }
+  function setMode(m) { currentMode = m; }
 
   async function callGemini(prompt) {
-    const history = buildHistoryForAPI();
+    const history = buildHistory();
     const contents = [
       ...history.map(h => ({ role: h.role === 'assistant' ? 'model' : h.role, parts: [{ text: h.content }] })),
       { role: 'user', parts: [{ text: prompt }] }
     ];
     const res = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${KEYS.gemini}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          system_instruction: { parts: [{ text: ORION_SYSTEM() }] },
-          contents,
-          generationConfig: { maxOutputTokens: 350, temperature: 0.85 }
-        })
-      }
+      { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ system_instruction:{parts:[{text:SYSTEM()}]}, contents, generationConfig:{maxOutputTokens:400,temperature:0.85} }) }
     );
     if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e?.error?.message || `Gemini ${res.status}`); }
-    const data = await res.json();
-    return data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+    const d = await res.json();
+    return d.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
   }
 
   async function callClaude(prompt) {
-    const history = buildHistoryForAPI();
-    const messages = [
-      ...history,
-      { role: 'user', content: prompt }
-    ];
+    const messages = [...buildHistory(), { role: 'user', content: prompt }];
     const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': KEYS.claude,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 350,
-        system: ORION_SYSTEM(),
-        messages
-      })
+      method:'POST',
+      headers:{ 'Content-Type':'application/json', 'x-api-key':KEYS.claude, 'anthropic-version':'2023-06-01', 'anthropic-dangerous-direct-browser-access':'true' },
+      body: JSON.stringify({ model:'claude-sonnet-4-6', max_tokens:400, system:SYSTEM(), messages })
     });
     if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e?.error?.message || `Claude ${res.status}`); }
-    const data = await res.json();
-    return data.content?.[0]?.text?.trim();
+    const d = await res.json();
+    return d.content?.[0]?.text?.trim();
   }
 
   async function callOpenAI(prompt) {
-    const history = buildHistoryForAPI();
-    const messages = [
-      { role: 'system', content: ORION_SYSTEM() },
-      ...history,
-      { role: 'user', content: prompt }
-    ];
+    const messages = [{ role:'system', content:SYSTEM() }, ...buildHistory(), { role:'user', content:prompt }];
     const res = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${KEYS.openai}` },
-      body: JSON.stringify({ model: 'gpt-4o-mini', max_tokens: 350, temperature: 0.85, messages })
+      method:'POST',
+      headers:{ 'Content-Type':'application/json', 'Authorization':`Bearer ${KEYS.openai}` },
+      body: JSON.stringify({ model:'gpt-4o-mini', max_tokens:400, temperature:0.85, messages })
     });
     if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e?.error?.message || `OpenAI ${res.status}`); }
-    const data = await res.json();
-    return data.choices?.[0]?.message?.content?.trim();
+    const d = await res.json();
+    return d.choices?.[0]?.message?.content?.trim();
   }
 
-  async function callExternalAPI(prompt) {
+  async function callExternal(prompt) {
     if (KEYS.gemini) return callGemini(prompt);
     if (KEYS.claude) return callClaude(prompt);
     if (KEYS.openai) return callOpenAI(prompt);
     return null;
   }
 
-  /* ─── FALLBACK INTERNO quando não há API ─── */
-  function fallbackResponse() {
-    return 'Entendi sua mensagem. Para responder com mais precisão a perguntas complexas, conecte uma IA externa nas configurações. O que mais posso fazer por você?';
-  }
-
-  /* ─── PROCESSAMENTO CENTRAL ─── */
-  async function process(userText) {
-    /* 1. Verificar comandos internos */
-    for (const cmd of COMMANDS) {
-      if (cmd.match.test(userText)) {
-        const reply = cmd.handle(userText);
-        if (reply) return reply;
-      }
-    }
-
-    /* 2. Tentar API externa */
-    const extReply = await callExternalAPI(userText);
-    if (extReply) {
-      return cleanResponse(extReply);
-    }
-
-    /* 3. Fallback interno */
-    return fallbackResponse();
-  }
-
-  function cleanResponse(text) {
+  function clean(text) {
     return text
-      .replace(/\*\*(.*?)\*\*/g, '$1')
-      .replace(/\*(.*?)\*/g,     '$1')
-      .replace(/#{1,6}\s/g,      '')
-      .replace(/`{1,3}[^`]*`{1,3}/g, '')
-      .replace(/^\s*[-•]\s*/gm,  '')
-      .replace(/^\s*\d+\.\s*/gm, '')
+      .replace(/\*\*(.*?)\*\*/g,'$1')
+      .replace(/\*(.*?)\*/g,'$1')
+      .replace(/#{1,6}\s/g,'')
+      .replace(/`{1,3}[^`]*`{1,3}/g,'')
+      .replace(/^\s*[-•]\s*/gm,'')
+      .replace(/^\s*\d+\.\s*/gm,'')
       .trim();
   }
 
-  return { process, setKey, getActiveAPI, KEYS, IDENTITY, addHistory, fallbackResponse };
+  async function process(userText) {
+    for (const cmd of CMDS) {
+      if (cmd.m.test(userText)) { const r = cmd.h(userText); if (r) return r; }
+    }
+    const ext = await callExternal(userText);
+    if (ext) return clean(ext);
+    return 'Entendi. Para respostas mais elaboradas, conecte uma IA externa nas configurações. O que mais posso fazer por você?';
+  }
+
+  return { process, setKey, setMode, getActiveAPI, addHistory, KEYS };
 })();
 </script>
 
 <!-- ═══════════════════════════════════════════════════════
-     ORION APP — Coordenador principal e UI
+     ORION APP — Coordenador principal
 ═══════════════════════════════════════════════════════ -->
 <script>
 (function() {
-  /* ─── Elementos de UI ─── */
-  const statusEl   = document.getElementById('status');
-  const orbScene   = document.getElementById('orbScene');
-  const apiPanel   = document.getElementById('apiPanel');
-  const keyBtn     = document.getElementById('keyBtn');
-  const keyGemini  = document.getElementById('keyGemini');
-  const keyClaude  = document.getElementById('keyClaude');
-  const keyOpenAI  = document.getElementById('keyOpenAI');
-  const keyEleven  = document.getElementById('keyElevenLabs');
-  const voiceIdEleven = document.getElementById('voiceIdElevenLabs');
-  const dotGemini  = document.getElementById('dotGemini');
-  const dotClaude  = document.getElementById('dotClaude');
-  const dotOpenAI  = document.getElementById('dotOpenAI');
-  const dotEleven  = document.getElementById('dotElevenLabs');
-  const saveKeysBtn= document.getElementById('saveKeys');
-  const hintPill   = document.getElementById('hintPill');
+  /* Elements */
+  const statusText   = document.getElementById('statusText');
+  const statusSub    = document.getElementById('statusSub');
+  const hintLine     = document.getElementById('hintLine');
+  const bottomStatus = document.getElementById('bottomStatus');
+  const orbEl        = document.getElementById('orb');
+  const orbStage     = document.getElementById('orbStage');
+  const sidebar      = document.getElementById('sidebar');
+  const chatPanel    = document.getElementById('chatPanel');
+  const menuBtn      = document.getElementById('menuBtn');
+  const settingsBtn  = document.getElementById('settingsBtn');
+  const settingsPanel= document.getElementById('settingsPanel');
+  const saveSettings = document.getElementById('saveSettings');
+  const chatInput    = document.getElementById('chatInput');
+  const sendBtn      = document.getElementById('sendBtn');
+  const chatMessages = document.getElementById('chatMessages');
+  const chatCount    = document.getElementById('chatCount');
+  const modePill     = document.getElementById('modePill');
+  const extDot       = document.getElementById('extDot');
+  const extLabel     = document.getElementById('extLabel');
 
-  let currentState = 'idle';
+  let curState = 'idle';
+  let msgCount = 0;
 
-  /* ─── Estado e status ─── */
-  function setState(name, msg) {
-    currentState = name;
-    const defaultMsg = ORB.setState(name);
-    if (msg !== undefined) statusEl.textContent = msg;
-    else if (defaultMsg)   statusEl.textContent = defaultMsg;
+  const MODE_LABELS = {
+    explorer: '🌌 Explorador',
+    dev:      '💻 Desenvolvedor',
+    ai:       '🤖 Engenheiro IA',
+    study:    '📚 Estudos',
+  };
 
-    /* Hint pill */
-    hintPill.style.opacity = name === 'idle' ? '1' : '0';
+  /* ─── State machine ─── */
+  function setState(name, msg, sub) {
+    curState = name;
+    ORB.setState(name);
+
+    const labels = {
+      idle:      { main: 'Toque para ativar', sub: '',                         hint: true  },
+      listening: { main: 'Ouvindo…',          sub: 'Microfone ativo',          hint: false },
+      thinking:  { main: 'Processando…',      sub: 'Consultando núcleo',       hint: false },
+      speaking:  { main: '',                  sub: '',                         hint: false },
+      error:     { main: 'Erro',              sub: 'Tente novamente',          hint: true  },
+    };
+    const lbl = labels[name] || labels.idle;
+
+    statusText.textContent   = msg  !== undefined ? msg  : lbl.main;
+    statusSub.textContent    = sub  !== undefined ? sub  : lbl.sub;
+    hintLine.style.opacity   = lbl.hint ? '1' : '0';
+
+    /* bottom bar */
+    const bottomLabels = { idle:'Sistema operacional', listening:'Escutando…', thinking:'Processando…', speaking:'Respondendo…', error:'Erro — tente novamente' };
+    bottomStatus.textContent = bottomLabels[name] || bottomLabels.idle;
+
+    /* Particles */
+    if (name === 'speaking' || name === 'listening') PARTICLES.pulse();
+    else PARTICLES.deactivate();
   }
 
-  /* ─── API dots update ─── */
-  function updateAPIDots() {
-    dotGemini.className = 'dot-status ' + (ORION_CORE.KEYS.gemini ? 'dot-ok' : 'dot-off');
-    dotClaude.className = 'dot-status ' + (ORION_CORE.KEYS.claude ? 'dot-ok' : 'dot-off');
-    dotOpenAI.className = 'dot-status ' + (ORION_CORE.KEYS.openai ? 'dot-ok' : 'dot-off');
-    dotEleven.className = 'dot-status ' + (localStorage.getItem('orion_key_elevenlabs') ? 'dot-ok' : 'dot-off');
+  /* ─── Update API status indicators ─── */
+  function updateExtStatus() {
+    const active = CORE.getActiveAPI();
+    if (active) {
+      extDot.className = 'dot dot-on';
+      extLabel.textContent = active + ' ativa';
+    } else {
+      extDot.className = 'dot dot-idle';
+      extLabel.textContent = 'Sem IA ext.';
+    }
+    ['gemini','claude','openai','elevenlabs'].forEach(k => {
+      const dot = document.getElementById('dot' + k.charAt(0).toUpperCase() + k.slice(1));
+      const val = k === 'elevenlabs' ? localStorage.getItem('orion_key_elevenlabs') : CORE.KEYS[k];
+      if (dot) dot.className = 'api-dot' + (val ? ' on' : '');
+    });
   }
 
-  /* ─── Fluxo principal ─── */
-  async function handleUserSpeech(text) {
+  /* ─── Chat helpers ─── */
+  function addMsg(role, text) {
+    const wrap = document.createElement('div');
+    wrap.className = 'msg ' + (role === 'user' ? 'msg-user' : 'msg-orion');
+    wrap.innerHTML = `<div class="msg-label">${role === 'user' ? 'Você' : 'ORION'}</div><div>${text}</div>`;
+    chatMessages.appendChild(wrap);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    msgCount++;
+    chatCount.textContent = msgCount + (msgCount === 1 ? ' mensagem' : ' mensagens');
+  }
+
+  /* ─── Main speech/text handler ─── */
+  async function handle(text) {
     if (!text.trim()) { setState('idle'); return; }
-
+    addMsg('user', text);
     setState('thinking');
-    ORION_CORE.addHistory('user', text);
-
+    CORE.addHistory('user', text);
     try {
-      const reply = await ORION_CORE.process(text);
-      ORION_CORE.addHistory('assistant', reply);
-
-      VOICE.speak(
-        reply,
-        () => setState('speaking'),  /* onStart */
-        () => setState('idle')        /* onEnd */
+      const reply = await CORE.process(text);
+      CORE.addHistory('assistant', reply);
+      addMsg('orion', reply);
+      VOICE.speak(reply,
+        () => setState('speaking'),
+        () => setState('idle')
       );
     } catch(err) {
-      console.error('ORION process error:', err);
-      const errMsg = 'Falha na conexão neural. Tente novamente.';
-      setState('error', errMsg);
-      VOICE.speak(errMsg, () => {}, () => setState('idle'));
+      const e = 'Falha na conexão neural. Tente novamente.';
+      setState('error', e, '');
+      VOICE.speak(e, () => {}, () => setState('idle'));
     }
   }
 
-  /* ─── VOICE callbacks ─── */
+  /* ─── Voice init ─── */
   VOICE.init({
-    onResult: (text) => {
-      setState('thinking');
-      setTimeout(() => handleUserSpeech(text), 200);
-    },
-    onStateChange: (state, msg) => setState(state, msg),
+    onResult:      text  => { setState('thinking'); setTimeout(() => handle(text), 180); },
+    onStateChange: (s,m) => setState(s, m),
   });
 
-  /* ─── Ativação da orb ─── */
+  /* ─── Orb activation ─── */
   function activate() {
-    if (currentState === 'speaking') {
-      VOICE.stopSpeaking();
-      setState('idle');
-      return;
-    }
-    if (currentState === 'listening') {
-      VOICE.stopListening();
-      setState('idle');
-      return;
-    }
-    if (currentState !== 'idle') return;
+    if (curState === 'speaking')  { VOICE.stopSpeaking(); setState('idle'); return; }
+    if (curState === 'listening') { VOICE.stopListening(); setState('idle'); return; }
+    if (curState !== 'idle') return;
 
     if (!VOICE.isAvailable) {
-      setState('error', 'Voz não disponível neste navegador.');
-      setTimeout(() => setState('idle'), 3000);
-      return;
+      setState('error', 'Voz indisponível neste navegador.', '');
+      setTimeout(() => setState('idle'), 3000); return;
     }
-
     ORB.pressEffect();
-    const started = VOICE.startListening();
-    if (!started) {
-      setState('error', 'Não foi possível iniciar o microfone.');
+    if (!VOICE.startListening()) {
+      setState('error', 'Microfone indisponível.', '');
       setTimeout(() => setState('idle'), 2500);
     }
   }
 
-  /* ─── Eventos da orb ─── */
-  orbScene.addEventListener('click', activate);
-  orbScene.addEventListener('touchstart', (e) => { e.preventDefault(); activate(); }, { passive: false });
-  orbScene.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); activate(); }
+  orbStage.addEventListener('click', activate);
+  orbStage.addEventListener('touchstart', e => { e.preventDefault(); activate(); }, { passive: false });
+  document.addEventListener('keydown', e => {
+    if (e.code === 'Space' && !e.target.matches('input, textarea')) { e.preventDefault(); activate(); }
   });
 
-  /* Spacebar global shortcut */
-  document.addEventListener('keydown', (e) => {
-    if (e.code === 'Space' && !e.target.matches('input')) { e.preventDefault(); activate(); }
-  });
-
-  /* ─── Speak pulse visual ─── */
+  /* Speaking visual pulse */
   document.addEventListener('orion:speakpulse', () => {
-    if (currentState === 'speaking') {
-      /* Subtle brightness flicker tied to speech rhythm */
-      document.getElementById('orb').style.filter = `brightness(${0.95 + Math.random() * 0.12})`;
-    }
+    if (curState === 'speaking')
+      orbEl.style.filter = `brightness(${0.94 + Math.random() * 0.14})`;
   });
 
-  /* ─── API panel toggle ─── */
-  keyBtn.addEventListener('click', () => {
-    const isOpen = apiPanel.classList.toggle('visible');
+  /* ─── UI toggles ─── */
+  function toggleSidebar() { sidebar.classList.toggle('open'); }
+  function toggleChat()    { chatPanel.classList.toggle('open'); }
+  window.toggleSidebar = toggleSidebar;
+  window.toggleChat    = toggleChat;
+
+  menuBtn.addEventListener('click', toggleSidebar);
+
+  settingsBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const isOpen = settingsPanel.classList.toggle('open');
     if (isOpen) {
-      keyGemini.value = ORION_CORE.KEYS.gemini;
-      keyClaude.value = ORION_CORE.KEYS.claude;
-      keyOpenAI.value = ORION_CORE.KEYS.openai;
-      keyEleven.value = localStorage.getItem('orion_key_elevenlabs') || '';
-      voiceIdEleven.value = localStorage.getItem('orion_voiceid_elevenlabs') || '';
-      updateAPIDots();
+      document.getElementById('keyGemini').value    = CORE.KEYS.gemini;
+      document.getElementById('keyClaude').value    = CORE.KEYS.claude;
+      document.getElementById('keyOpenAI').value    = CORE.KEYS.openai;
+      document.getElementById('keyElevenLabs').value = localStorage.getItem('orion_key_elevenlabs') || '';
+      document.getElementById('voiceIdEleven').value = localStorage.getItem('orion_voiceid_elevenlabs') || '';
+      updateExtStatus();
     }
   });
 
-  saveKeysBtn.addEventListener('click', () => {
-    ORION_CORE.setKey('gemini', keyGemini.value.trim());
-    ORION_CORE.setKey('claude', keyClaude.value.trim());
-    ORION_CORE.setKey('openai', keyOpenAI.value.trim());
-    localStorage.setItem('orion_key_elevenlabs', keyEleven.value.trim());
-    localStorage.setItem('orion_voiceid_elevenlabs', voiceIdEleven.value.trim());
-    updateAPIDots();
-    apiPanel.classList.remove('visible');
-    const active = ORION_CORE.getActiveAPI();
-    const voiceMsg = keyEleven.value.trim() ? ' Voz neural ativa.' : '';
-    setState('idle', (active ? `${active} conectada.` : 'Sem IA externa. Modo local ativo.') + voiceMsg);
+  saveSettings.addEventListener('click', () => {
+    CORE.setKey('gemini', document.getElementById('keyGemini').value.trim());
+    CORE.setKey('claude', document.getElementById('keyClaude').value.trim());
+    CORE.setKey('openai', document.getElementById('keyOpenAI').value.trim());
+    localStorage.setItem('orion_key_elevenlabs', document.getElementById('keyElevenLabs').value.trim());
+    localStorage.setItem('orion_voiceid_elevenlabs', document.getElementById('voiceIdEleven').value.trim());
+    updateExtStatus();
+    settingsPanel.classList.remove('open');
+    const active = CORE.getActiveAPI();
+    setState('idle', active ? `${active} conectada.` : 'Modo local ativo.', '');
     setTimeout(() => setState('idle'), 2800);
   });
 
-  /* ─── Click fora para fechar painel ─── */
-  document.addEventListener('click', (e) => {
-    if (!apiPanel.contains(e.target) && e.target !== keyBtn) apiPanel.classList.remove('visible');
+  document.addEventListener('click', e => {
+    if (!settingsPanel.contains(e.target) && e.target !== settingsBtn)
+      settingsPanel.classList.remove('open');
   });
 
-  /* ─── Inicialização ─── */
-  ORB.init();
-  updateAPIDots();
+  /* ─── Chat input ─── */
+  sendBtn.addEventListener('click', () => {
+    const txt = chatInput.value.trim();
+    if (!txt) return;
+    chatInput.value = '';
+    handle(txt);
+  });
+  chatInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendBtn.click(); }
+  });
 
-  /* Saudação de boot — direta, sem referências a sessões anteriores */
+  /* ─── Mode switching ─── */
+  window.setMode = function(mode, btn) {
+    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    CORE.setMode(mode);
+    modePill.textContent = MODE_LABELS[mode] || '🌌 Explorador';
+  };
+
+  /* ─── BOOT SEQUENCE ─── */
+  const lines = ['bl0','bl1','bl2','bl3'];
+  const bar   = document.getElementById('bootBar');
+  const progs = [18, 48, 78, 100];
+
+  lines.forEach((id, i) => {
+    setTimeout(() => {
+      document.getElementById(id).classList.add('active');
+      bar.style.width = progs[i] + '%';
+      if (i < lines.length - 1) return;
+      setTimeout(() => document.getElementById(id).classList.add('done'), 400);
+    }, 600 + i * 700);
+  });
+
+  const totalBoot = 600 + (lines.length - 1) * 700 + 700;
   setTimeout(() => {
-    setState('idle', 'ORION online. Toque para começar.');
-  }, 600);
+    document.getElementById('bootScreen').classList.add('fade-out');
+    setTimeout(() => {
+      document.getElementById('bootScreen').style.display = 'none';
+      document.getElementById('app').classList.add('visible');
+
+      /* Auto-open sidebar after boot */
+      setTimeout(() => {
+        sidebar.classList.add('open');
+        setState('idle', 'ORION online. Toque para começar.', 'v3.0 — pronto para auxiliar');
+        setTimeout(() => setState('idle'), 3500);
+      }, 200);
+    }, 850);
+  }, totalBoot);
+
+  /* ─── Init ─── */
+  ORB.init();
+  updateExtStatus();
 
 })();
 </script>
