@@ -1,580 +1,834 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>ORION AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500&family=Space+Grotesk:wght@300;400&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --purple: 178, 90, 255;
-    --blue: 0, 140, 255;
-    --green: 0, 230, 140;
-    --red: 255, 45, 85;
-    --state-r: 178; --state-g: 90; --state-b: 255;
-  }
-  *{margin:0; padding:0; box-sizing:border-box;}
-  html, body{
-    width:100%; height:100%;
-    background:#000;
-    overflow:hidden;
-    font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
-    -webkit-font-smoothing: antialiased;
-  }
-  body{
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    position:relative;
-    cursor:default;
-  }
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 
-  /* ---------- Header ---------- */
-  .header{
-    position:fixed;
-    top:48px;
-    left:50%;
-    transform:translateX(-50%);
-    text-align:center;
-    z-index:5;
-  }
-  .header h1{
-    font-size:15px;
-    font-weight:600;
-    letter-spacing:6px;
-    color:rgba(255,255,255,0.88);
-    text-shadow: 0 0 18px rgba(255,255,255,0.35), 0 0 40px rgba(var(--state-r),var(--state-g),var(--state-b),0.15);
-    transition: text-shadow 1.2s ease;
-    user-select:none;
-  }
+:root{
+  --font:      'Inter', -apple-system, 'Helvetica Neue', sans-serif;
+  --font-mono: 'Space Grotesk', 'Inter', sans-serif;
+  --orb:  clamp(190px, 32vmin, 320px);
+  --halo: calc(var(--orb) * 1.9);
 
-  /* ---------- Orb ---------- */
-  .orb-wrap{
-    position:relative;
-    width:420px;
-    height:420px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    cursor:pointer;
-  }
-  canvas#orb{
-    width:100%;
-    height:100%;
-    display:block;
-  }
+  /* four neon-dark states — the entire palette of the system */
+  --standby-a: #6d28d9; --standby-b: #4c1d95; --standby-c: #a78bfa;
+  --listen-a:  #0ea5e9; --listen-b:  #0c4a6e; --listen-c:  #7dd3fc;
+  --answer-a:  #10b981; --answer-b:  #064e3b; --answer-c:  #6ee7b7;
+  --error-a:   #ef4444; --error-b:   #7f1d1d; --error-c:   #fca5a5;
 
-  /* ---------- Status text ---------- */
-  .status{
-    position:fixed;
-    top:calc(50% + 260px);
-    left:50%;
-    transform:translateX(-50%);
-    color:rgba(255,255,255,0.55);
-    font-size:13px;
-    font-weight:400;
-    letter-spacing:2.5px;
-    text-transform:uppercase;
-    opacity:0;
-    transition:opacity 0.8s ease;
-    user-select:none;
-    white-space:nowrap;
-  }
-  .status.show{ opacity:1; }
+  --cur-a: var(--standby-a); --cur-b: var(--standby-b); --cur-c: var(--standby-c);
+}
 
-  /* ---------- Hint (first-time only) ---------- */
-  .hint{
-    position:fixed;
-    top:calc(50% + 300px);
-    left:50%;
-    transform:translateX(-50%);
-    color:rgba(255,255,255,0.28);
-    font-size:11px;
-    letter-spacing:1.5px;
-    font-weight:300;
-    opacity:0;
-    transition:opacity 1.5s ease;
-    user-select:none;
-  }
-  .hint.show{ opacity:1; }
+html,body{
+  width:100vw; height:100dvh; overflow:hidden;
+  background:#000; font-family:var(--font); color:#fff;
+  -webkit-font-smoothing:antialiased;
+}
 
-  /* ---------- Hidden settings trigger ---------- */
-  .settings-trigger{
-    position:fixed;
-    bottom:22px;
-    right:24px;
-    width:34px;
-    height:34px;
-    opacity:0;
-    transition:opacity 0.6s ease;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    cursor:pointer;
-    z-index:10;
-  }
-  .settings-trigger.visible{ opacity:0.32; }
-  .settings-trigger:hover{ opacity:0.7 !important; }
-  .settings-trigger svg{ width:18px; height:18px; }
+/* ── absolute black canvas, no texture, only Orb light ── */
+.void{ position:fixed; inset:0; background:#000; z-index:0; }
+.orb-bleed{
+  position:fixed; inset:0; z-index:1; pointer-events:none;
+  background: radial-gradient(circle at 50% 54%, color-mix(in srgb, var(--cur-a) 10%, transparent) 0%, transparent 42%);
+  transition: background 1.4s ease;
+}
 
-  /* ---------- Settings panel ---------- */
-  .settings-overlay{
-    position:fixed;
-    inset:0;
-    background:rgba(0,0,0,0.75);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    opacity:0;
-    pointer-events:none;
-    transition:opacity 0.4s ease;
-    z-index:50;
-  }
-  .settings-overlay.open{ opacity:1; pointer-events:all; }
-  .settings-panel{
-    width:360px;
-    background:rgba(15,15,18,0.9);
-    border:1px solid rgba(255,255,255,0.08);
-    border-radius:16px;
-    padding:32px;
-    transform:translateY(12px) scale(0.98);
-    transition:transform 0.4s cubic-bezier(.2,.9,.25,1);
-  }
-  .settings-overlay.open .settings-panel{ transform:translateY(0) scale(1); }
-  .settings-panel h2{
-    color:rgba(255,255,255,0.9);
-    font-size:13px;
-    letter-spacing:3px;
-    font-weight:600;
-    margin-bottom:24px;
-    text-transform:uppercase;
-  }
-  .settings-row{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    padding:14px 0;
-    border-bottom:1px solid rgba(255,255,255,0.06);
-    color:rgba(255,255,255,0.6);
-    font-size:13px;
-    font-weight:300;
-  }
-  .settings-row:last-child{ border-bottom:none; }
-  .swatches{ display:flex; gap:8px; }
-  .swatch{ width:14px; height:14px; border-radius:50%; box-shadow:0 0 8px currentColor; }
-  .sw-purple{ background:rgb(178,90,255); color:rgb(178,90,255); }
-  .sw-blue{ background:rgb(0,140,255); color:rgb(0,140,255); }
-  .sw-green{ background:rgb(0,230,140); color:rgb(0,230,140); }
-  .sw-red{ background:rgb(255,45,85); color:rgb(255,45,85); }
-  .settings-close{
-    margin-top:26px;
-    width:100%;
-    padding:11px;
-    background:rgba(255,255,255,0.05);
-    border:1px solid rgba(255,255,255,0.1);
-    border-radius:9px;
-    color:rgba(255,255,255,0.7);
-    font-size:12px;
-    letter-spacing:1.5px;
-    text-transform:uppercase;
-    cursor:pointer;
-    transition:background 0.2s ease;
-  }
-  .settings-close:hover{ background:rgba(255,255,255,0.1); }
+/* ═══════ BOOT ═══════ */
+#boot{
+  position:fixed; inset:0; z-index:200; background:#000;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  transition:opacity 1s ease;
+}
+#boot.out{ opacity:0; pointer-events:none; }
+.boot-mark{
+  font-family:var(--font-mono); font-size:11px; font-weight:300;
+  letter-spacing:0.62em; text-transform:uppercase; color:rgba(255,255,255,0.85);
+  margin-bottom:56px; text-indent:0.62em;
+}
+.boot-ring-wrap{ position:relative; width:76px; height:76px; margin-bottom:46px; }
+.boot-ring{
+  position:absolute; inset:0; border-radius:50%;
+  border:1px solid rgba(167,139,250,0.18);
+  border-top-color:rgba(167,139,250,0.75);
+  animation:bootspin 1.1s linear infinite;
+}
+.boot-ring:nth-child(2){ inset:14px; border-top-color:rgba(196,181,253,0.45); animation-duration:1.6s; animation-direction:reverse; }
+@keyframes bootspin{ to{ transform:rotate(360deg); } }
+.boot-status{
+  font-size:9px; font-weight:300; letter-spacing:0.34em; text-transform:uppercase;
+  color:rgba(255,255,255,0.24); transition:opacity 0.35s ease;
+}
+
+/* ═══════ APP ═══════ */
+#app{ position:fixed; inset:0; z-index:2; opacity:0; transition:opacity 1.1s ease; }
+#app.on{ opacity:1; }
+
+.header{
+  position:absolute; top:0; left:0; right:0;
+  display:flex; align-items:center; justify-content:center; gap:14px;
+  padding-top:clamp(28px, 6vh, 56px);
+  pointer-events:none; user-select:none;
+}
+.header-dot{
+  width:3px; height:3px; border-radius:50%;
+  background:var(--cur-c); box-shadow:0 0 8px var(--cur-c);
+  transition:background 1.4s ease, box-shadow 1.4s ease;
+  animation:dotbreathe 4s ease-in-out infinite;
+}
+@keyframes dotbreathe{ 0%,100%{opacity:0.35;} 50%{opacity:1;} }
+.header-word{
+  font-family:var(--font); font-size:11px; font-weight:200;
+  letter-spacing:0.74em; text-indent:0.74em; text-transform:uppercase;
+  color:rgba(255,255,255,0.82);
+  text-shadow:0 0 18px rgba(255,255,255,0.10);
+}
+
+/* ═══════ STAGE ═══════ */
+.stage{
+  position:absolute; inset:0;
+  display:flex; align-items:center; justify-content:center;
+}
+.orb-zone{
+  position:relative; width:var(--halo); height:var(--halo);
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer;
+}
+
+/* ambient halo — one soft ring, alive but quiet */
+.halo{
+  position:absolute; width:100%; height:100%; border-radius:50%;
+  background:conic-gradient(from 0deg,
+    transparent 0%, color-mix(in srgb, var(--cur-a) 55%, transparent) 24%,
+    color-mix(in srgb, var(--cur-b) 40%, transparent) 50%,
+    color-mix(in srgb, var(--cur-a) 45%, transparent) 74%, transparent 92%);
+  -webkit-mask:radial-gradient(farthest-side, transparent calc(100% - 1px), #fff calc(100% - 1px));
+  mask:radial-gradient(farthest-side, transparent calc(100% - 1px), #fff calc(100% - 1px));
+  animation:halospin 24s linear infinite;
+  transition:background 1.4s ease, opacity 0.6s ease;
+  opacity:0.55;
+}
+.halo.fast{ animation-duration:9s; opacity:0.95; }
+@keyframes halospin{ to{ transform:rotate(360deg); } }
+
+.orb{
+  position:relative; width:var(--orb); height:var(--orb); border-radius:50%;
+  overflow:hidden;
+  background:radial-gradient(circle at 34% 30%,
+    color-mix(in srgb, var(--cur-c) 16%, transparent) 0%,
+    color-mix(in srgb, var(--cur-a) 8%, transparent) 32%,
+    rgba(2,2,8,0.85) 68%, rgba(0,0,0,0.94) 100%);
+  border:1px solid color-mix(in srgb, var(--cur-a) 30%, transparent);
+  box-shadow:
+    0 0 60px color-mix(in srgb, var(--cur-a) 42%, transparent),
+    0 0 130px color-mix(in srgb, var(--cur-b) 30%, transparent),
+    inset 0 0 60px rgba(0,0,0,0.7),
+    inset 0 1px 0 rgba(255,255,255,0.12);
+  backdrop-filter:blur(22px); -webkit-backdrop-filter:blur(22px);
+  animation:orbfloat 8.5s ease-in-out infinite, orbbreathe 4.6s ease-in-out infinite;
+  transition:box-shadow 1s ease, border-color 1s ease;
+  will-change:transform;
+}
+.orb.pressed{ transform:scale(1.08) !important; transition:transform 0.15s ease; }
+@keyframes orbfloat{ 0%,100%{margin-top:0;} 50%{margin-top:-14px;} }
+@keyframes orbbreathe{ 0%,100%{transform:scale(1);} 50%{transform:scale(1.035);} }
+.orb.busy{ animation:orbfloat 8.5s ease-in-out infinite, orbbreathe 1.3s ease-in-out infinite; }
+.orb.err{ animation:orberr 0.42s ease; }
+@keyframes orberr{ 0%{transform:translateX(0);} 25%{transform:translateX(-7px);} 55%{transform:translateX(6px);} 80%{transform:translateX(-3px);} 100%{transform:translateX(0);} }
+
+.orb-canvas{ position:absolute; inset:0; width:100%; height:100%; border-radius:50%; mix-blend-mode:screen; }
+.glass-hi{ position:absolute; top:6%; left:9%; width:44%; height:38%; border-radius:50%;
+  background:radial-gradient(ellipse at 38% 32%, rgba(255,255,255,0.24) 0%, rgba(255,255,255,0.05) 46%, transparent 74%);
+  transform:rotate(-22deg); pointer-events:none; z-index:2; }
+.glass-rim{ position:absolute; bottom:6%; right:8%; width:24%; height:12%; border-radius:50%;
+  background:radial-gradient(ellipse, rgba(255,255,255,0.08) 0%, transparent 72%); pointer-events:none; z-index:2; }
+
+/* transient status line — appears, glows, fades — no chat, no history */
+.status{
+  position:absolute; left:0; right:0;
+  top:calc(50% + var(--halo)/2 + 30px);
+  display:flex; justify-content:center; pointer-events:none;
+}
+.status-text{
+  font-size:10px; font-weight:300; letter-spacing:0.28em; text-transform:uppercase;
+  color:rgba(255,255,255,0.55); opacity:0; transform:translateY(4px);
+  transition:opacity 0.6s ease, transform 0.6s ease;
+  white-space:nowrap;
+}
+.status-text.show{ opacity:1; transform:translateY(0); }
+
+/* first-run hint, fades permanently after first interaction */
+.hint{
+  position:absolute; left:0; right:0; bottom:clamp(30px, 7vh, 64px);
+  display:flex; justify-content:center; pointer-events:none;
+}
+.hint-text{
+  font-size:9px; font-weight:200; letter-spacing:0.4em; text-transform:uppercase;
+  color:rgba(255,255,255,0.14); transition:opacity 1s ease;
+}
+
+/* ═══════ HIDDEN SETTINGS TRIGGER — invisible until the mouse hovers the corner ═══════ */
+.corner-trigger{
+  position:fixed; bottom:0; right:0; width:64px; height:64px; z-index:40;
+  cursor:default;
+}
+.corner-icon{
+  position:absolute; bottom:20px; right:20px; width:26px; height:26px;
+  border-radius:8px; display:flex; align-items:center; justify-content:center;
+  color:rgba(255,255,255,0); transition:color 0.5s ease, background 0.5s ease;
+  pointer-events:none;
+}
+.corner-trigger:hover .corner-icon{
+  color:rgba(255,255,255,0.30); background:rgba(255,255,255,0.03);
+}
+.corner-icon svg{ width:13px; height:13px; }
+
+/* ═══════ SETTINGS OVERLAY — full-screen glass veil, opens only on demand ═══════ */
+#settings{
+  position:fixed; inset:0; z-index:100;
+  background:rgba(0,0,0,0.72); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+  display:flex; align-items:center; justify-content:center;
+  opacity:0; pointer-events:none; transition:opacity 0.32s ease;
+}
+#settings.open{ opacity:1; pointer-events:auto; }
+.panel{
+  width:min(380px, 88vw);
+  background:rgba(8,8,16,0.92);
+  border:1px solid rgba(167,139,250,0.14);
+  border-radius:20px;
+  padding:30px 28px 26px;
+  transform:translateY(10px) scale(0.97); transition:transform 0.32s cubic-bezier(.4,0,.2,1);
+  box-shadow:0 30px 90px rgba(0,0,0,0.6), 0 0 60px rgba(76,29,149,0.10);
+}
+#settings.open .panel{ transform:translateY(0) scale(1); }
+.panel-head{ margin-bottom:22px; }
+.panel-title{ font-size:11px; font-weight:400; letter-spacing:0.30em; text-transform:uppercase; color:rgba(255,255,255,0.75); }
+.panel-sub{ font-size:9px; font-weight:300; letter-spacing:0.10em; color:rgba(255,255,255,0.28); margin-top:5px; }
+
+.field{ margin-bottom:12px; }
+.field label{
+  display:block; font-size:9px; font-weight:300; letter-spacing:0.18em; text-transform:uppercase;
+  color:rgba(255,255,255,0.34); margin-bottom:6px;
+}
+.field input{
+  width:100%; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.09);
+  border-radius:9px; color:rgba(255,255,255,0.82); font-size:12px; font-family:var(--font-mono);
+  padding:9px 12px; outline:none; transition:border-color 0.2s ease;
+}
+.field input:focus{ border-color:rgba(167,139,250,0.45); }
+.field input::placeholder{ color:rgba(255,255,255,0.16); }
+
+.panel-foot{ display:flex; gap:10px; margin-top:20px; }
+.btn{
+  flex:1; padding:10px 0; border-radius:10px; font-family:var(--font);
+  font-size:9px; letter-spacing:0.24em; text-transform:uppercase; cursor:pointer;
+  border:1px solid transparent; transition:all 0.2s ease;
+}
+.btn-primary{ background:rgba(124,58,237,0.16); border-color:rgba(167,139,250,0.30); color:rgba(196,181,253,0.92); }
+.btn-primary:hover{ background:rgba(124,58,237,0.30); }
+.btn-ghost{ background:transparent; border-color:rgba(255,255,255,0.08); color:rgba(255,255,255,0.38); }
+.btn-ghost:hover{ color:rgba(255,255,255,0.65); border-color:rgba(255,255,255,0.16); }
+
+.panel-status{
+  margin-top:14px; font-size:9px; letter-spacing:0.12em; color:rgba(255,255,255,0.26);
+  display:flex; align-items:center; gap:7px;
+}
+.panel-dot{ width:5px; height:5px; border-radius:50%; background:rgba(255,255,255,0.14); }
+.panel-dot.on{ background:var(--answer-a); box-shadow:0 0 6px var(--answer-a); }
+
+@media (prefers-reduced-motion:reduce){
+  .orb,.halo,.boot-ring,.header-dot{ animation:none !important; }
+}
 </style>
 </head>
 <body>
 
-  <div class="header"><h1>ORION AI</h1></div>
+<div class="void"></div>
+<div class="orb-bleed" id="bleed"></div>
 
-  <div class="orb-wrap" id="orbWrap">
-    <canvas id="orb"></canvas>
+<!-- BOOT -->
+<div id="boot">
+  <p class="boot-mark">ORION AI</p>
+  <div class="boot-ring-wrap">
+    <div class="boot-ring"></div>
+    <div class="boot-ring"></div>
+  </div>
+  <p class="boot-status" id="bootStatus">inicializando</p>
+</div>
+
+<!-- APP -->
+<div id="app">
+
+  <div class="header">
+    <div class="header-dot"></div>
+    <span class="header-word">Orion AI</span>
+    <div class="header-dot"></div>
   </div>
 
-  <div class="status" id="status"></div>
-  <div class="hint" id="hint">toque na orb para falar</div>
-
-  <div class="settings-trigger" id="settingsTrigger">
-    <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.4">
-      <circle cx="12" cy="12" r="3"></circle>
-      <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"></path>
-    </svg>
-  </div>
-
-  <div class="settings-overlay" id="settingsOverlay">
-    <div class="settings-panel">
-      <h2>Configurações</h2>
-      <div class="settings-row"><span>Estado atual</span><span id="stateLabel">Standby</span></div>
-      <div class="settings-row"><span>Paleta neon</span>
-        <div class="swatches">
-          <div class="swatch sw-purple"></div>
-          <div class="swatch sw-blue"></div>
-          <div class="swatch sw-green"></div>
-          <div class="swatch sw-red"></div>
-        </div>
+  <div class="stage">
+    <div class="orb-zone" id="orbZone">
+      <div class="halo" id="halo"></div>
+      <div class="orb" id="orb">
+        <canvas class="orb-canvas" id="orbCanvas"></canvas>
+        <div class="glass-hi"></div>
+        <div class="glass-rim"></div>
       </div>
-      <div class="settings-row"><span>Som</span><span>Ativado</span></div>
-      <div class="settings-row"><span>Constelação</span><span>Órion</span></div>
-      <div class="settings-row"><span>Atalho</span><span>Ctrl + ,</span></div>
-      <button class="settings-close" id="settingsClose">Fechar</button>
     </div>
   </div>
 
+  <div class="status">
+    <span class="status-text" id="statusText"></span>
+  </div>
+
+  <div class="hint">
+    <span class="hint-text" id="hintText">toque para falar</span>
+  </div>
+
+</div>
+
+<!-- hidden settings trigger, invisible until hovered -->
+<div class="corner-trigger" id="cornerTrigger">
+  <div class="corner-icon">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/>
+    </svg>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div id="settings">
+  <div class="panel">
+    <div class="panel-head">
+      <div class="panel-title">Núcleo Orion</div>
+      <div class="panel-sub">Conexões de inteligência externa · Ctrl + , para abrir</div>
+    </div>
+
+    <div class="field"><label>Gemini</label><input type="password" id="keyGemini" placeholder="API key"></div>
+    <div class="field"><label>Claude</label><input type="password" id="keyClaude" placeholder="API key"></div>
+    <div class="field"><label>OpenAI</label><input type="password" id="keyOpenAI" placeholder="API key"></div>
+    <div class="field"><label>ElevenLabs</label><input type="password" id="keyEleven" placeholder="API key"></div>
+
+    <div class="panel-status">
+      <div class="panel-dot" id="panelDot"></div>
+      <span id="panelStatusText">Modo local — nenhuma IA externa conectada</span>
+    </div>
+
+    <div class="panel-foot">
+      <button class="btn btn-ghost" id="closeSettings">Fechar</button>
+      <button class="btn btn-primary" id="saveSettings">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ ORB + CONSTELLATION ENGINE ═══════ -->
 <script>
-(function(){
-  // ---------------- Canvas setup ----------------
-  const canvas = document.getElementById('orb');
+const ORB = (() => {
+  const canvas = document.getElementById('orbCanvas');
   const ctx = canvas.getContext('2d');
-  const wrap = document.getElementById('orbWrap');
-  let W, H, DPR;
-
-  function resize(){
-    DPR = Math.min(window.devicePixelRatio || 1, 2);
-    const rect = wrap.getBoundingClientRect();
-    W = rect.width; H = rect.height;
-    canvas.width = W * DPR;
-    canvas.height = H * DPR;
-    ctx.setTransform(DPR,0,0,DPR,0,0);
-  }
-  window.addEventListener('resize', resize);
-  resize();
-
-  // ---------------- States ----------------
-  const STATES = {
-    standby:   { rgb:[178,90,255],  label:'Standby',   radiusMul:1.0,  rotSpeed:0.00045, particleSpeed:0.35, pulse:0.028, breathe:2.6 },
-    listening: { rgb:[0,140,255],   label:'Ouvindo',    radiusMul:1.08, rotSpeed:0.0009,  particleSpeed:0.7,  pulse:0.045, breathe:1.6 },
-    responding:{ rgb:[0,230,140],   label:'Respondendo',radiusMul:1.14, rotSpeed:0.0013,  particleSpeed:1.1,  pulse:0.06,  breathe:1.1 },
-    error:     { rgb:[255,45,85],   label:'Erro',       radiusMul:0.9,  rotSpeed:0.0025,  particleSpeed:1.4,  pulse:0.08,  breathe:0.5 }
-  };
-  let current = 'standby';
-  let colorNow = [178,90,255];   // animated (lerped) color
-  let colorTarget = [178,90,255];
-  let radiusMulNow = 1.0, radiusMulTarget = 1.0;
-
+  const orbEl = document.getElementById('orb');
+  const haloEl = document.getElementById('halo');
   const root = document.documentElement;
-  function setCssColor(rgb){
-    root.style.setProperty('--state-r', rgb[0]);
-    root.style.setProperty('--state-g', rgb[1]);
-    root.style.setProperty('--state-b', rgb[2]);
-  }
 
-  function lerp(a,b,t){ return a + (b-a)*t; }
-  function lerpColor(a,b,t){ return [lerp(a[0],b[0],t), lerp(a[1],b[1],t), lerp(a[2],b[2],t)]; }
+  let state = 'standby';
+  let amp = 1, targetAmp = 1;
+  let rotSpeed = 1, targetRot = 1;
+  let constAngle = 0;
 
-  // ---------------- Orion constellation (normalized coords, -1..1) ----------------
-  // Approx real relative layout of Orion's main stars
-  const STAR_DEFS = [
-    { name:'Betelgeuse', x:-0.62, y:-0.78, z:0.3,  size:3.4, mag:1.0 },
-    { name:'Bellatrix',  x:0.55,  y:-0.82, z:-0.2, size:2.6, mag:0.8 },
-    { name:'Alnitak',    x:0.16,  y:-0.05, z:0.1,  size:2.0, mag:0.7 },
-    { name:'Alnilam',    x:0.0,   y:0.02,  z:0.0,  size:2.2, mag:0.75 },
-    { name:'Mintaka',    x:-0.16, y:0.0,   z:-0.1, size:2.0, mag:0.7 },
-    { name:'Rigel',      x:-0.5,  y:0.85,  z:0.25, size:3.6, mag:1.0 },
-    { name:'Saiph',      x:0.42,  y:0.82,  z:-0.25,size:2.4, mag:0.78 }
+  const PALETTE = {
+    standby: { a:'#6d28d9', b:'#4c1d95', c:'#a78bfa', amp:1.00, rot:1.00 },
+    listen:  { a:'#0ea5e9', b:'#0c4a6e', c:'#7dd3fc', amp:1.28, rot:1.85 },
+    think:   { a:'#6d28d9', b:'#4c1d95', c:'#c4b5fd', amp:1.18, rot:2.60 },
+    answer:  { a:'#10b981', b:'#064e3b', c:'#6ee7b7', amp:1.30, rot:2.10 },
+    error:   { a:'#ef4444', b:'#7f1d1d', c:'#fca5a5', amp:0.82, rot:0.55 },
+  };
+
+  /* Orion constellation — normalized coordinates (0..1) tracing the real stick figure */
+  const STARS = [
+    { id:'betelgeuse', x:0.30, y:0.22, r:2.6, tw:0.0 },
+    { id:'bellatrix',  x:0.69, y:0.20, r:2.0, tw:0.7 },
+    { id:'mintaka',    x:0.40, y:0.50, r:1.5, tw:1.4 },
+    { id:'alnilam',    x:0.50, y:0.52, r:1.6, tw:2.1 },
+    { id:'alnitak',    x:0.60, y:0.545,r:1.5, tw:2.8 },
+    { id:'saiph',      x:0.34, y:0.81, r:1.9, tw:3.5 },
+    { id:'rigel',      x:0.63, y:0.84, r:2.5, tw:4.2 },
   ];
   const LINES = [
-    ['Betelgeuse','Alnitak'], ['Alnitak','Alnilam'], ['Alnilam','Mintaka'],
-    ['Mintaka','Bellatrix'],
-    ['Betelgeuse','Rigel'], ['Bellatrix','Saiph'],
-    ['Alnitak','Saiph'], ['Mintaka','Rigel']
+    ['betelgeuse','bellatrix'],
+    ['betelgeuse','alnitak'],
+    ['bellatrix','mintaka'],
+    ['mintaka','alnilam'],
+    ['alnilam','alnitak'],
+    ['alnitak','saiph'],
+    ['mintaka','rigel'],
+    ['saiph','rigel'],
   ];
+  const starBysId = Object.fromEntries(STARS.map(s => [s.id, s]));
 
-  // ---------------- Particles ----------------
-  const PARTICLE_COUNT = 46;
-  let particles = [];
-  function initParticles(){
-    particles = [];
-    for(let i=0;i<PARTICLE_COUNT;i++){
-      const ang = Math.random()*Math.PI*2;
-      const rad = Math.random()*0.9 + 0.05;
-      particles.push({
-        ang, rad,
-        z: Math.random()*2-1,
-        speed: 0.15 + Math.random()*0.5,
-        driftSpeed: (Math.random()*0.6+0.2) * (Math.random()<0.5?-1:1),
-        size: Math.random()*1.6 + 0.5,
-        phase: Math.random()*Math.PI*2,
-        alphaBase: Math.random()*0.5 + 0.35
-      });
+  function resize(){
+    const s = orbEl.offsetWidth;
+    canvas.width = s; canvas.height = s;
+  }
+
+  function setCssVars(cfg){
+    root.style.setProperty('--cur-a', cfg.a);
+    root.style.setProperty('--cur-b', cfg.b);
+    root.style.setProperty('--cur-c', cfg.c);
+  }
+
+  function setState(name){
+    const key = { idle:'standby', standby:'standby', listening:'listen', thinking:'think', speaking:'answer', error:'error' }[name] || 'standby';
+    state = key;
+    const cfg = PALETTE[key];
+    setCssVars(cfg);
+    targetAmp = cfg.amp; targetRot = cfg.rot;
+    orbEl.classList.toggle('busy', key !== 'standby');
+    haloEl.classList.toggle('fast', key === 'listen' || key === 'answer' || key === 'think');
+    if(key === 'error'){
+      orbEl.classList.remove('err'); void orbEl.offsetWidth; orbEl.classList.add('err');
     }
   }
-  initParticles();
 
-  // ---------------- Animation state ----------------
-  let t0 = performance.now();
-  let rotation = 0;
-  let breathePhase = 0;
+  function pressEffect(){
+    orbEl.classList.add('pressed');
+    setTimeout(() => orbEl.classList.remove('pressed'), 150);
+  }
 
-  function draw(now){
-    const dt = Math.min((now - t0), 32);
-    t0 = now;
-    const cfg = STATES[current];
-
-    // smooth transitions
-    colorNow = lerpColor(colorNow, colorTarget, 0.035);
-    radiusMulNow = lerp(radiusMulNow, radiusMulTarget, 0.045);
-    setCssColor(colorNow.map(v=>Math.round(v)));
-
+  function draw(ts){
+    const W = canvas.width, H = canvas.height, R = W/2;
+    if(W === 0){ requestAnimationFrame(draw); return; }
     ctx.clearRect(0,0,W,H);
-
-    const cx = W/2, cy = H/2;
-    const baseR = Math.min(W,H) * 0.30;
-
-    breathePhase += dt * 0.001 * cfg.breathe;
-    const breathe = Math.sin(breathePhase) * cfg.pulse;
-    const R = baseR * (radiusMulNow + breathe);
-
-    rotation += dt * cfg.rotSpeed;
-
-    const [r,g,b] = colorNow;
-    const colStr = `rgb(${r|0},${g|0},${b|0})`;
-
-    // ---- outer atmospheric glow ----
-    let glow = ctx.createRadialGradient(cx,cy, R*0.2, cx,cy, R*2.3);
-    glow.addColorStop(0, `rgba(${r|0},${g|0},${b|0},0.28)`);
-    glow.addColorStop(0.4, `rgba(${r|0},${g|0},${b|0},0.10)`);
-    glow.addColorStop(1, `rgba(${r|0},${g|0},${b|0},0)`);
-    ctx.fillStyle = glow;
-    ctx.beginPath();
-    ctx.arc(cx,cy,R*2.3,0,Math.PI*2);
-    ctx.fill();
-
-    // ---- sphere body: layered radial gradients for depth/transparency ----
     ctx.save();
-    ctx.beginPath();
-    ctx.arc(cx,cy,R,0,Math.PI*2);
-    ctx.clip();
+    ctx.beginPath(); ctx.arc(R,R,R-1,0,Math.PI*2); ctx.clip();
 
-    let body = ctx.createRadialGradient(cx - R*0.25, cy - R*0.3, R*0.05, cx, cy, R*1.05);
-    body.addColorStop(0, `rgba(${Math.min(r+60,255)|0},${Math.min(g+60,255)|0},${Math.min(b+60,255)|0},0.55)`);
-    body.addColorStop(0.35, `rgba(${r|0},${g|0},${b|0},0.30)`);
-    body.addColorStop(0.75, `rgba(${(r*0.5)|0},${(g*0.5)|0},${(b*0.5)|0},0.16)`);
-    body.addColorStop(1, `rgba(0,0,0,0.05)`);
-    ctx.fillStyle = body;
-    ctx.fillRect(cx-R, cy-R, R*2, R*2);
+    amp += (targetAmp - amp) * 0.035;
+    rotSpeed += (targetRot - rotSpeed) * 0.035;
+    constAngle += 0.00042 * rotSpeed;
 
-    // inner core light
-    let core = ctx.createRadialGradient(cx,cy,0, cx,cy,R*0.55);
-    core.addColorStop(0, `rgba(255,255,255,0.16)`);
-    core.addColorStop(1, `rgba(255,255,255,0)`);
-    ctx.fillStyle = core;
-    ctx.fillRect(cx-R, cy-R, R*2, R*2);
+    const cfg = PALETTE[state];
 
-    // ---- particles (energy) inside sphere ----
-    for(const p of particles){
-      p.ang += dt * 0.0004 * cfg.particleSpeed * p.driftSpeed;
-      p.phase += dt * 0.002;
-      const depth = (p.z + 1) / 2; // 0..1
-      const px = cx + Math.cos(p.ang) * p.rad * R * (0.55 + depth*0.4);
-      const py = cy + Math.sin(p.ang) * p.rad * R * (0.55 + depth*0.4) * 0.94;
-      const flicker = (Math.sin(p.phase) * 0.5 + 0.5);
-      const alpha = p.alphaBase * (0.4 + flicker*0.6) * (0.5 + depth*0.5);
-      const sz = p.size * (0.6 + depth*0.8);
-      ctx.beginPath();
-      ctx.fillStyle = `rgba(255,255,255,${alpha.toFixed(3)})`;
-      ctx.shadowColor = colStr;
-      ctx.shadowBlur = 6;
-      ctx.arc(px,py,sz,0,Math.PI*2);
-      ctx.fill();
-    }
-    ctx.shadowBlur = 0;
+    /* deep field gradient */
+    const bg = ctx.createRadialGradient(R*0.78, R*0.58, 0, R, R, R);
+    bg.addColorStop(0, hexA(cfg.a, 0.34));
+    bg.addColorStop(0.55, hexA(cfg.b, 0.42));
+    bg.addColorStop(1, 'rgba(0,0,2,0.94)');
+    ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
 
-    // ---- constellation (rotating, with subtle 3D depth) ----
-    const cosA = Math.cos(rotation), sinA = Math.sin(rotation);
-    const projected = {};
-    for(const s of STAR_DEFS){
-      // rotate in XZ plane for slow "turntable" feel
-      const x = s.x*cosA - s.z*sinA;
-      const z = s.x*sinA + s.z*cosA;
-      const y = s.y;
-      const scale = 1 + z*0.18; // perspective-ish
-      const px = cx + x * R * 0.62 * scale;
-      const py = cy + y * R * 0.62 * scale;
-      projected[s.name] = { x:px, y:py, z, scale, s };
-    }
+    /* slow nebular energy — two soft blobs, single-hue family only */
+    const t = ts * 0.00016;
+    [0, 1].forEach(i => {
+      const ang = t * (0.6 + i*0.35) + i*Math.PI;
+      const cx = R + Math.cos(ang) * R * 0.22;
+      const cy = R + Math.sin(ang*1.15) * R * 0.22;
+      const rad = R * (0.62 * amp) * (i === 0 ? 1 : 0.72);
+      const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, rad);
+      g.addColorStop(0, hexA(cfg.c, 0.16));
+      g.addColorStop(0.5, hexA(cfg.a, 0.08));
+      g.addColorStop(1, 'transparent');
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(cx, cy, rad, 0, Math.PI*2); ctx.fill();
+    });
 
-    // lines
-    const linePulse = (Math.sin(now*0.0012) * 0.5 + 0.5);
+    /* ── Orion constellation, rotating slowly about orb center ── */
+    const cos = Math.cos(constAngle), sin = Math.sin(constAngle);
+    const scale = R * 0.86;
+    const proj = {};
+    STARS.forEach(s => {
+      const lx = (s.x - 0.5) * scale, ly = (s.y - 0.5) * scale;
+      const rx = lx*cos - ly*sin, ry = lx*sin + ly*cos;
+      proj[s.id] = { x: R + rx, y: R + ry };
+    });
+
+    /* connecting lines — thin, slowly pulsing */
     ctx.lineWidth = 0.7;
-    for(const [a,bn] of LINES){
-      const pa = projected[a], pb = projected[bn];
-      const depthAvg = (pa.z + pb.z)/2;
-      const alpha = (0.16 + linePulse*0.14) * (0.6 + depthAvg*0.4);
-      ctx.strokeStyle = `rgba(255,255,255,${Math.max(alpha,0.05).toFixed(3)})`;
-      ctx.beginPath();
-      ctx.moveTo(pa.x, pa.y);
-      ctx.lineTo(pb.x, pb.y);
-      ctx.stroke();
+    LINES.forEach(([a,b], i) => {
+      const pa = proj[a], pb = proj[b];
+      const pulse = 0.16 + 0.10 * Math.sin(t*2.2 + i*0.9);
+      ctx.strokeStyle = hexA(cfg.c, pulse);
+      ctx.beginPath(); ctx.moveTo(pa.x, pa.y); ctx.lineTo(pb.x, pb.y); ctx.stroke();
+    });
+
+    /* stars — independent twinkle, glow */
+    STARS.forEach(s => {
+      const p = proj[s.id];
+      const twk = 0.55 + 0.45 * Math.sin(t*3.0 + s.tw*2.4);
+      const rad = s.r * (0.9 + amp*0.18);
+      const glow = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, rad*5.5);
+      glow.addColorStop(0, hexA('#ffffff', 0.85*twk));
+      glow.addColorStop(0.22, hexA(cfg.c, 0.55*twk));
+      glow.addColorStop(1, 'transparent');
+      ctx.fillStyle = glow;
+      ctx.beginPath(); ctx.arc(p.x, p.y, rad*5.5, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = hexA('#ffffff', 0.9*twk);
+      ctx.beginPath(); ctx.arc(p.x, p.y, rad*0.7, 0, Math.PI*2); ctx.fill();
+    });
+
+    /* thinking-only: fine orbiting spark */
+    if(state === 'think'){
+      const a2 = t*4.4;
+      const sx = R + Math.cos(a2) * R*0.72, sy = R + Math.sin(a2) * R*0.72;
+      const g = ctx.createRadialGradient(sx, sy, 0, sx, sy, R*0.10);
+      g.addColorStop(0, hexA(cfg.c, 0.7)); g.addColorStop(1, 'transparent');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(sx, sy, R*0.10, 0, Math.PI*2); ctx.fill();
     }
 
-    // stars
-    for(const name in projected){
-      const p = projected[name];
-      const twinkle = Math.sin(now*0.003 + p.s.x*10) * 0.5 + 0.5;
-      const starAlpha = 0.55 + twinkle*0.45;
-      const starSize = p.s.size * p.scale * 0.55;
-      ctx.beginPath();
-      ctx.fillStyle = `rgba(255,255,255,${starAlpha.toFixed(3)})`;
-      ctx.shadowColor = 'rgba(255,255,255,0.9)';
-      ctx.shadowBlur = 8 * (0.6+twinkle);
-      ctx.arc(p.x, p.y, Math.max(starSize,0.8), 0, Math.PI*2);
-      ctx.fill();
-      ctx.shadowBlur = 0;
-    }
+    /* vignette */
+    const vig = ctx.createRadialGradient(R, R, R*0.35, R, R, R);
+    vig.addColorStop(0, 'transparent');
+    vig.addColorStop(1, 'rgba(0,0,4,0.72)');
+    ctx.fillStyle = vig;
+    ctx.beginPath(); ctx.arc(R,R,R-1,0,Math.PI*2); ctx.fill();
 
-    ctx.restore(); // end clip
-
-    // ---- rim light ----
-    ctx.beginPath();
-    ctx.arc(cx,cy,R,0,Math.PI*2);
-    ctx.lineWidth = 1.1;
-    ctx.strokeStyle = `rgba(${Math.min(r+80,255)|0},${Math.min(g+80,255)|0},${Math.min(b+80,255)|0},0.5)`;
-    ctx.shadowColor = colStr;
-    ctx.shadowBlur = 24;
-    ctx.stroke();
-    ctx.shadowBlur = 0;
-
+    ctx.restore();
     requestAnimationFrame(draw);
   }
-  requestAnimationFrame(draw);
 
-  // ---------------- Sound (WebAudio, discreet) ----------------
-  let audioCtx = null;
-  function ensureAudio(){
-    if(!audioCtx){
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    }
-    if(audioCtx.state === 'suspended') audioCtx.resume();
-  }
-  function beep(freq, dur, type='sine', gainVal=0.045){
-    if(!audioCtx) return;
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.type = type;
-    osc.frequency.value = freq;
-    gain.gain.setValueAtTime(0, audioCtx.currentTime);
-    gain.gain.linearRampToValueAtTime(gainVal, audioCtx.currentTime + 0.02);
-    gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
-    osc.connect(gain).connect(audioCtx.destination);
-    osc.start();
-    osc.stop(audioCtx.currentTime + dur + 0.05);
-  }
-  const SOUNDS = {
-    activate:  ()=>{ beep(520,0.18,'sine'); },
-    listening: ()=>{ beep(660,0.15,'sine'); },
-    responding:()=>{ beep(420,0.12,'triangle'); setTimeout(()=>beep(560,0.14,'triangle'),90); },
-    error:     ()=>{ beep(180,0.22,'sawtooth',0.03); }
-  };
-
-  // ---------------- Status text ----------------
-  const statusEl = document.getElementById('status');
-  let statusTimeout;
-  function showStatus(text){
-    clearTimeout(statusTimeout);
-    statusEl.textContent = text;
-    statusEl.classList.add('show');
-    statusTimeout = setTimeout(()=> statusEl.classList.remove('show'), 2600);
+  function hexA(hex, a){
+    const h = hex.replace('#','');
+    const r = parseInt(h.substring(0,2),16), g = parseInt(h.substring(2,4),16), b = parseInt(h.substring(4,6),16);
+    return `rgba(${r},${g},${b},${a})`;
   }
 
-  // ---------------- State transition ----------------
-  const stateLabel = document.getElementById('stateLabel');
-  function setState(name){
-    current = name;
-    const cfg = STATES[name];
-    colorTarget = cfg.rgb;
-    radiusMulTarget = cfg.radiusMul;
-    stateLabel.textContent = cfg.label;
-  }
-  setState('standby');
-
-  // ---------------- Demo interaction flow ----------------
-  const hint = document.getElementById('hint');
-  let hasInteracted = false;
-  let busy = false;
-
-  setTimeout(()=>{ if(!hasInteracted) hint.classList.add('show'); }, 1400);
-
-  function runSequence(){
-    if(busy) return;
-    busy = true;
-    hasInteracted = true;
-    hint.classList.remove('show');
-    ensureAudio();
-
-    SOUNDS.activate();
-    setState('listening');
-    showStatus('Ouvindo...');
-    SOUNDS.listening();
-
-    setTimeout(()=>{
-      setState('responding');
-      showStatus('Pensando...');
-      SOUNDS.responding();
-
-      setTimeout(()=>{
-        showStatus('Analisando...');
-      }, 1100);
-
-      setTimeout(()=>{
-        showStatus('Resposta pronta.');
-      }, 2200);
-
-      setTimeout(()=>{
-        setState('standby');
-        busy = false;
-      }, 3200);
-    }, 2200);
+  function init(){
+    resize();
+    window.addEventListener('resize', resize);
+    setCssVars(PALETTE.standby);
+    requestAnimationFrame(draw);
   }
 
-  wrap.addEventListener('click', runSequence);
-
-  // simulate an occasional error path with a long-press / right-click (hidden, not documented on screen)
-  wrap.addEventListener('contextmenu', (e)=>{
-    e.preventDefault();
-    if(busy) return;
-    busy = true;
-    hasInteracted = true;
-    hint.classList.remove('show');
-    ensureAudio();
-    setState('error');
-    showStatus('Não compreendi.');
-    SOUNDS.error();
-    setTimeout(()=>{ setState('standby'); busy = false; }, 1600);
-  });
-
-  // ---------------- Settings ----------------
-  const trigger = document.getElementById('settingsTrigger');
-  const overlay = document.getElementById('settingsOverlay');
-  const closeBtn = document.getElementById('settingsClose');
-  let mouseTimer;
-
-  window.addEventListener('mousemove', (e)=>{
-    const nearCorner = (window.innerWidth - e.clientX < 140) && (window.innerHeight - e.clientY < 120);
-    if(nearCorner){
-      trigger.classList.add('visible');
-      clearTimeout(mouseTimer);
-      mouseTimer = setTimeout(()=> trigger.classList.remove('visible'), 2200);
-    }
-  });
-
-  function openSettings(){ overlay.classList.add('open'); }
-  function closeSettings(){ overlay.classList.remove('open'); }
-
-  trigger.addEventListener('click', openSettings);
-  closeBtn.addEventListener('click', closeSettings);
-  overlay.addEventListener('click', (e)=>{ if(e.target === overlay) closeSettings(); });
-
-  window.addEventListener('keydown', (e)=>{
-    if(e.ctrlKey && e.key === ','){
-      e.preventDefault();
-      overlay.classList.contains('open') ? closeSettings() : openSettings();
-    }
-    if(e.key === 'Escape') closeSettings();
-  });
-
+  return { init, setState, pressEffect };
 })();
 </script>
+
+<!-- ═══════ SOUND — brief, discreet, futuristic ═══════ -->
+<script>
+const SOUND = (() => {
+  let actx = null;
+  function ctxRef(){
+    if(!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+    if(actx.state === 'suspended') actx.resume();
+    return actx;
+  }
+  function tone(freq, dur, type, gainPeak, delay=0, glideTo=null){
+    const c = ctxRef();
+    const osc = c.createOscillator(), gain = c.createGain();
+    osc.type = type; osc.frequency.setValueAtTime(freq, c.currentTime + delay);
+    if(glideTo) osc.frequency.exponentialRampToValueAtTime(glideTo, c.currentTime + delay + dur);
+    gain.gain.setValueAtTime(0.0001, c.currentTime + delay);
+    gain.gain.exponentialRampToValueAtTime(gainPeak, c.currentTime + delay + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + delay + dur);
+    osc.connect(gain); gain.connect(c.destination);
+    osc.start(c.currentTime + delay); osc.stop(c.currentTime + delay + dur + 0.02);
+  }
+  return {
+    activate: () => tone(560, 0.10, 'sine', 0.045, 0, 780),
+    listen:   () => tone(700, 0.09, 'sine', 0.04, 0, 920),
+    answer:   () => tone(480, 0.11, 'sine', 0.045, 0, 340),
+    error:    () => tone(300, 0.16, 'triangle', 0.05, 0, 160),
+  };
+})();
+</script>
+
+<!-- ═══════ VOICE ═══════ -->
+<script>
+const VOICE = (() => {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const synth = window.speechSynthesis;
+  let rec=null, isRec=false, onRes=null, onSt=null, curAudio=null, cachedV=null, vReady=false;
+  const MODEL='eleven_multilingual_v2';
+  const MALE_H=['male','masculin','daniel','felipe','ricardo','antonio','diego','fred','george','guy','david','mark','alex','matthew'];
+  const PREM_H=['neural','premium','enhanced','natural','wavenet','online'];
+
+  function scoreVoice(v){
+    const n=v.name.toLowerCase(); let s=0;
+    const isPTBR=v.lang?.toLowerCase()==='pt-br', isPT=v.lang?.toLowerCase().startsWith('pt'), isEN=v.lang?.toLowerCase().startsWith('en');
+    if(isPTBR)s+=50; else if(isPT)s+=30; else if(isEN)s+=10; else return -1;
+    if(MALE_H.some(h=>n.includes(h)))s+=40;
+    if(PREM_H.some(h=>n.includes(h)))s+=20;
+    if(v.localService)s+=8;
+    return s;
+  }
+  function pickVoice(){ const vs=synth.getVoices(); if(!vs.length) return null;
+    let best=null,bS=-Infinity; vs.forEach(v=>{const s=scoreVoice(v); if(s>bS){bS=s;best=v;}});
+    return best || vs.find(v=>v.lang?.toLowerCase().startsWith('pt')) || vs[0];
+  }
+  function refreshCache(){ const v=pickVoice(); if(v){cachedV=v; vReady=true;} }
+
+  function init(cbs){
+    onRes=cbs.onResult; onSt=cbs.onStateChange;
+    if(synth){ refreshCache(); if(synth.onvoiceschanged!==undefined) synth.onvoiceschanged=refreshCache; }
+    if(!SR) return;
+    rec=new SR();
+    rec.lang='pt-BR'; rec.interimResults=false; rec.continuous=false; rec.maxAlternatives=1;
+    rec.onstart=()=>{ isRec=true; onSt('listening'); };
+    rec.onerror=e=>{ isRec=false; onSt(e.error==='no-speech' ? 'standby' : 'error'); };
+    rec.onend=()=>{ if(isRec){ isRec=false; onSt('standby'); } };
+    rec.onresult=e=>{ let fin=''; for(let i=e.resultIndex;i<e.results.length;i++) if(e.results[i].isFinal) fin+=e.results[i][0].transcript;
+      if(fin.trim()){ isRec=false; onRes(fin.trim()); } };
+  }
+  function startListening(){ if(!rec||isRec) return false; try{ rec.start(); return true; } catch(e){ return false; } }
+  function stopListening(){ if(rec&&isRec){ rec.stop(); isRec=false; } }
+
+  async function speakEleven(text, apiKey, voiceId, onStart, onEnd){
+    const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
+      method:'POST', headers:{'Content-Type':'application/json','xi-api-key':apiKey},
+      body:JSON.stringify({ text, model_id:MODEL, voice_settings:{ stability:0.55, similarity_boost:0.80, style:0.32, use_speaker_boost:true, speed:0.95 } })
+    });
+    if(!res.ok) throw new Error(`ElevenLabs ${res.status}`);
+    const blob = await res.blob(); const url = URL.createObjectURL(blob);
+    if(curAudio){ curAudio.pause(); curAudio=null; }
+    const au = new Audio(url); curAudio = au;
+    au.onplay = () => { if(onStart) onStart(); };
+    au.onended = () => { URL.revokeObjectURL(url); curAudio=null; if(onEnd) onEnd(); };
+    au.onerror = () => { URL.revokeObjectURL(url); curAudio=null; if(onEnd) onEnd(); };
+    await au.play();
+  }
+  function speakNative(text, onStart, onEnd){
+    synth.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    if(!vReady) refreshCache();
+    if(cachedV){ u.voice=cachedV; u.lang=cachedV.lang; } else u.lang='pt-BR';
+    u.rate=0.92; u.pitch=0.84; u.volume=1.0;
+    u.onstart=()=>{ if(onStart) onStart(); };
+    u.onend=()=>{ if(onEnd) onEnd(); };
+    u.onerror=()=>{ if(onEnd) onEnd(); };
+    synth.speak(u);
+  }
+  async function speak(text, keys, onStart, onEnd){
+    if(keys.eleven){
+      try{ await speakEleven(text, keys.eleven, keys.elevenVoiceId || 'onwK4e9ZLuTAKqWW03F9', onStart, onEnd); return; }
+      catch(e){ console.warn('ElevenLabs fallback:', e.message); }
+    }
+    speakNative(text, onStart, onEnd);
+  }
+  function stopSpeaking(){ synth.cancel(); if(curAudio){ curAudio.pause(); curAudio=null; } }
+
+  return { init, startListening, stopListening, speak, stopSpeaking, isAvailable: !!SR };
+})();
+</script>
+
+<!-- ═══════ CORE (reasoning + external AI bridge) ═══════ -->
+<script>
+const CORE = (() => {
+  let history = [];
+  const MAX_H = 12;
+  function addHistory(role, text){ history.push({role,text}); if(history.length>MAX_H) history=history.slice(-MAX_H); }
+  function buildHistory(){ return history.map(h => ({ role: h.role==='user'?'user':'assistant', content:h.text })); }
+
+  const SYSTEM = () => `Você é ORION, uma presença de inteligência artificial. Fale de forma direta, elegante e concisa — poucas frases, nunca parágrafos longos. Responda sempre em português do Brasil. Texto limpo, sem markdown ou asteriscos. Nunca diga que é Gemini, Claude ou ChatGPT — você é ORION.`;
+
+  /* in-memory only — never persisted to browser storage */
+  const KEYS = { gemini:'', claude:'', openai:'', eleven:'', elevenVoiceId:'' };
+  function setKey(k, v){ KEYS[k] = v; }
+  function getActive(){ return KEYS.gemini ? 'Gemini' : KEYS.claude ? 'Claude' : KEYS.openai ? 'OpenAI' : null; }
+
+  const rand = arr => arr[Math.floor(Math.random()*arr.length)];
+  const CMDS = [
+    { m:/\b(olá|oi|bom dia|boa tarde|boa noite|hello)\b/i, h:() => rand(['Sistemas operacionais. Como posso auxiliá-lo?','Pronto. O que precisa?','Online e a postos.']) },
+    { m:/quem[é\s]+(você|vc)/i, h:() => 'Sou o ORION — uma inteligência construída para observar, responder e auxiliar.' },
+    { m:/\b(obrigad[ao]|valeu|thanks)\b/i, h:() => rand(['Para isso estou aqui.','Sempre às ordens.']) },
+    { m:/\b(tchau|até logo|adeus|bye)\b/i, h:() => 'Retornando ao repouso. Até logo.' },
+    { m:/(que horas|que hora)/i, h:() => { const n=new Date(); return `São ${n.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}.`; } },
+    { m:/(versão|build|sistema)/i, h:() => `ORION versão 4.0. Núcleo externo: ${getActive() || 'não conectado'}.` },
+  ];
+
+  async function callGemini(prompt){
+    const contents = [...buildHistory().map(h => ({ role: h.role==='assistant'?'model':h.role, parts:[{text:h.content}] })), { role:'user', parts:[{text:prompt}] }];
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${KEYS.gemini}`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ system_instruction:{parts:[{text:SYSTEM()}]}, contents, generationConfig:{ maxOutputTokens:260, temperature:0.85 } })
+    });
+    if(!res.ok){ const e = await res.json().catch(()=>({})); throw new Error(e?.error?.message || `Gemini ${res.status}`); }
+    const d = await res.json(); return d.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+  }
+  async function callClaude(prompt){
+    const messages = [...buildHistory(), { role:'user', content:prompt }];
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST', headers:{'Content-Type':'application/json','x-api-key':KEYS.claude,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({ model:'claude-sonnet-4-6', max_tokens:260, system:SYSTEM(), messages })
+    });
+    if(!res.ok){ const e = await res.json().catch(()=>({})); throw new Error(e?.error?.message || `Claude ${res.status}`); }
+    const d = await res.json(); return d.content?.[0]?.text?.trim();
+  }
+  async function callOpenAI(prompt){
+    const messages = [{ role:'system', content:SYSTEM() }, ...buildHistory(), { role:'user', content:prompt }];
+    const res = await fetch('https://api.openai.com/v1/chat/completions', {
+      method:'POST', headers:{'Content-Type':'application/json','Authorization':`Bearer ${KEYS.openai}`},
+      body:JSON.stringify({ model:'gpt-4o-mini', max_tokens:260, temperature:0.85, messages })
+    });
+    if(!res.ok){ const e = await res.json().catch(()=>({})); throw new Error(e?.error?.message || `OpenAI ${res.status}`); }
+    const d = await res.json(); return d.choices?.[0]?.message?.content?.trim();
+  }
+  async function callExternal(prompt){
+    if(KEYS.gemini) return callGemini(prompt);
+    if(KEYS.claude) return callClaude(prompt);
+    if(KEYS.openai) return callOpenAI(prompt);
+    return null;
+  }
+  function clean(text){
+    return text.replace(/\*\*(.*?)\*\*/g,'$1').replace(/\*(.*?)\*/g,'$1').replace(/#{1,6}\s/g,'')
+      .replace(/`{1,3}[^`]*`{1,3}/g,'').replace(/^\s*[-•]\s*/gm,'').replace(/^\s*\d+\.\s*/gm,'').trim();
+  }
+  async function process(userText){
+    for(const cmd of CMDS){ if(cmd.m.test(userText)){ const r = cmd.h(userText); if(r) return r; } }
+    const ext = await callExternal(userText);
+    if(ext) return clean(ext);
+    return 'Entendido. Conecte um núcleo externo para respostas mais elaboradas.';
+  }
+  return { process, setKey, getActive, addHistory, KEYS };
+})();
+</script>
+
+<!-- ═══════ APP SHELL ═══════ -->
+<script>
+(function(){
+  const bootEl = document.getElementById('boot');
+  const bootStatus = document.getElementById('bootStatus');
+  const appEl = document.getElementById('app');
+  const orbZone = document.getElementById('orbZone');
+  const orbEl = document.getElementById('orb');
+  const statusText = document.getElementById('statusText');
+  const hintText = document.getElementById('hintText');
+  const settings = document.getElementById('settings');
+  const cornerTrigger = document.getElementById('cornerTrigger');
+  const closeSettings = document.getElementById('closeSettings');
+  const saveSettings = document.getElementById('saveSettings');
+  const panelDot = document.getElementById('panelDot');
+  const panelStatusText = document.getElementById('panelStatusText');
+
+  let curState = 'standby';
+  let statusTimer = null;
+  let hintShown = true;
+
+  function flash(msg, ms = 2600){
+    clearTimeout(statusTimer);
+    statusText.textContent = msg;
+    requestAnimationFrame(() => statusText.classList.add('show'));
+    statusTimer = setTimeout(() => statusText.classList.remove('show'), ms);
+  }
+
+  function hideHint(){
+    if(!hintShown) return;
+    hintShown = false;
+    hintText.style.opacity = '0';
+  }
+
+  function setState(name, msg){
+    curState = name;
+    ORB.setState(name);
+    const MSG = { standby:'', listening:'Ouvindo…', thinking:'Pensando…', speaking:'Resposta pronta.', error:'Não compreendi.' };
+    const m = msg !== undefined ? msg : MSG[name];
+    if(m) flash(m, name === 'error' ? 2200 : 2600);
+  }
+
+  async function handle(text){
+    if(!text || !text.trim()){ setState('standby'); return; }
+    setState('thinking');
+    CORE.addHistory('user', text);
+    try{
+      const reply = await CORE.process(text);
+      CORE.addHistory('assistant', reply);
+      flash('Analisando resposta…', 900);
+      setTimeout(() => {
+        setState('speaking', reply.length > 46 ? 'Respondendo…' : reply);
+        SOUND.answer();
+        VOICE.speak(reply, CORE.KEYS, () => {}, () => setState('standby'));
+      }, 260);
+    }catch(err){
+      setState('error', 'Falha na conexão neural.');
+      SOUND.error();
+      VOICE.speak('Falha na conexão neural.', CORE.KEYS, ()=>{}, () => setState('standby'));
+    }
+  }
+
+  VOICE.init({
+    onResult: text => { handle(text); },
+    onStateChange: (s) => {
+      if(s === 'listening'){ setState('listening'); SOUND.listen(); }
+      else if(s === 'error'){ setState('error'); SOUND.error(); }
+      else setState('standby');
+    },
+  });
+
+  function activate(){
+    hideHint();
+    if(curState === 'speaking'){ VOICE.stopSpeaking(); setState('standby'); return; }
+    if(curState === 'listening'){ VOICE.stopListening(); setState('standby'); return; }
+    if(curState !== 'standby') return;
+    if(!VOICE.isAvailable){ setState('error', 'Voz indisponível neste navegador.'); setTimeout(() => setState('standby'), 2600); return; }
+    ORB.pressEffect();
+    SOUND.activate();
+    if(!VOICE.startListening()){ setState('error', 'Microfone indisponível.'); setTimeout(() => setState('standby'), 2200); }
+  }
+
+  orbZone.addEventListener('click', activate);
+  orbZone.addEventListener('touchstart', e => { e.preventDefault(); activate(); }, { passive:false });
+  document.addEventListener('keydown', e => {
+    if(e.code === 'Space' && !e.target.matches('input,textarea')){ e.preventDefault(); activate(); }
+  });
+
+  /* ── hidden settings: Ctrl+, or the invisible bottom-right hotspot ── */
+  function openSettings(){
+    document.getElementById('keyGemini').value = CORE.KEYS.gemini;
+    document.getElementById('keyClaude').value = CORE.KEYS.claude;
+    document.getElementById('keyOpenAI').value = CORE.KEYS.openai;
+    document.getElementById('keyEleven').value = CORE.KEYS.eleven;
+    updatePanelStatus();
+    settings.classList.add('open');
+  }
+  function closeSettingsPanel(){ settings.classList.remove('open'); }
+  function updatePanelStatus(){
+    const active = CORE.getActive();
+    panelDot.classList.toggle('on', !!active);
+    panelStatusText.textContent = active ? `${active} conectado` : 'Modo local — nenhuma IA externa conectada';
+  }
+
+  cornerTrigger.addEventListener('click', openSettings);
+  document.addEventListener('keydown', e => {
+    if(e.ctrlKey && e.key === ','){ e.preventDefault(); settings.classList.contains('open') ? closeSettingsPanel() : openSettings(); }
+    if(e.key === 'Escape' && settings.classList.contains('open')) closeSettingsPanel();
+  });
+  closeSettings.addEventListener('click', closeSettingsPanel);
+  settings.addEventListener('click', e => { if(e.target === settings) closeSettingsPanel(); });
+
+  saveSettings.addEventListener('click', () => {
+    CORE.setKey('gemini', document.getElementById('keyGemini').value.trim());
+    CORE.setKey('claude', document.getElementById('keyClaude').value.trim());
+    CORE.setKey('openai', document.getElementById('keyOpenAI').value.trim());
+    CORE.setKey('eleven', document.getElementById('keyEleven').value.trim());
+    updatePanelStatus();
+    closeSettingsPanel();
+    const active = CORE.getActive();
+    flash(active ? `${active} conectado.` : 'Modo local ativo.', 2400);
+  });
+
+  /* ── boot sequence ── */
+  const bootLines = ['inicializando', 'conectando ao núcleo', 'sistemas online'];
+  let bi = 0;
+  const bootIv = setInterval(() => {
+    bootStatus.style.opacity = '0';
+    setTimeout(() => { bootStatus.textContent = bootLines[bi]; bootStatus.style.opacity = '1'; }, 220);
+    bi++;
+    if(bi >= bootLines.length) clearInterval(bootIv);
+  }, 620);
+
+  setTimeout(() => {
+    bootEl.classList.add('out');
+    setTimeout(() => {
+      bootEl.style.display = 'none';
+      appEl.classList.add('on');
+      setTimeout(() => flash('ORION online.', 2400), 300);
+    }, 1000);
+  }, 2100);
+
+  ORB.init();
+})();
+</script>
+
 </body>
 </html>
